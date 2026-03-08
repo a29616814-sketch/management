@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; background: #edf1f7; min-height: 100vh; -webkit-overflow-scrolling: touch; overflow-x: hidden; }
+
+    .topbar {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.45);
+    }
+    .topbar-inner {
+      max-width: 680px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px 0;
+    }
+    .topbar-title { color: #e0e0ff; font-size: 15px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; }
+    .topbar-title span { color: #7ec8e3; }
+    .tab-nav { display: flex; gap: 4px; }
+    .tab-btn {
+      border: none; background: transparent; color: #8898aa;
+      font-size: 13px; font-family: inherit; font-weight: bold;
+      padding: 10px 18px 12px; cursor: pointer; border-radius: 8px 8px 0 0;
+      transition: background 0.2s, color 0.2s; display: flex; flex-direction: column; align-items: center; gap: 2px; -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .tab-btn.active { color: #1a1a2e; background: #edf1f7; font-weight: bold; }
+    .tab-icon { font-size: 17px; }
+
+    .page-wrap { max-width: 640px; margin: 0 auto; padding: 18px 14px 50px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); padding: 20px 20px 18px; margin-bottom: 14px; }
+    .card-hd { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: bold; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1.5px solid #f0f2f7; }
+    .card-hd-icon { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg,#0f3460,#1a5276); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label { font-size: 12px; font-weight: bold; color: #8898aa; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 6px; }
+    .field-input { width: 100%; padding: 11px 14px; border: 1.5px solid #e4e9f0; border-radius: 10px; font-size: 15px; font-family: inherit; color: #1a1a2e; background: #fafbfc; transition: border-color 0.15s; -webkit-appearance: none; }
+    .field-input:focus { outline: none; border-color: #0f3460; background: #fff; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .field-row .field { margin-bottom: 0; }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip-label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1.5px solid #e4e9f0; border-radius: 20px; cursor: pointer; font-size: 14px; font-family: inherit; color: #444; background: #fafbfc; transition: background 0.15s, border-color 0.15s, color 0.15s; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .chip-label:hover { border-color: #0f3460; background: #eef2f8; }
+    .chip-label input { display: none; }
+    .chip-label.sel-car  { background:#0f3460; border-color:#0f3460; color:#fff; font-weight:bold; }
+    .chip-label.sel-law  { background:#c0392b; border-color:#c0392b; color:#fff; font-weight:bold; }
+    .chip-label.sel-pos  { background:#dc3545; border-color:#dc3545; color:#fff; font-weight:bold; }
+    .chip-label.sel-neg  { background:#28a745; border-color:#28a745; color:#fff; font-weight:bold; }
+    .chip-label.sel-ref  { background:#fd7e14; border-color:#fd7e14; color:#fff; font-weight:bold; }
+    .chip-label.sel-oth  { background:#6f42c1; border-color:#6f42c1; color:#fff; font-weight:bold; }
+    .other-text { display: none; width: 100%; margin-top: 8px; padding: 9px 13px; border: 1.5px solid #6f42c1; border-radius: 9px; font-size: 14px; font-family: inherit; }
+    .other-text.show { display: block; }
+
+    .search-card { background: linear-gradient(135deg,#e8f4fd 0%,#ede8fd 100%); border: 1.5px solid #c5d8f5; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+    .search-row { display: flex; gap: 8px; margin-top: 8px; }
+    .search-row input { flex: 1; padding: 10px 13px; border: 1.5px solid #c5d8f5; border-radius: 9px; font-size: 15px; font-family: inherit; background: #fff; }
+    .search-row input:focus { outline: none; border-color: #0f3460; }
+    .search-btn { padding: 10px 18px; background: #0f3460; color: #fff; border: none; border-radius: 9px; font-size: 14px; font-family: inherit; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    .search-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .edit-badge { display: none; text-align: center; background: #fff3cd; color: #856404; padding: 9px 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #ffd166; font-weight: bold; font-size: 14px; }
+    .error-msg { color: #721c24; background: #f8d7da; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border: 1px solid #f5c6cb; display: none; font-size: 13px; }
+
+    /* 試劑編號大字輸入 */
+    .reagent-no-input {
+      width: 100%; padding: 14px 18px; border: 2px solid #e4e9f0; border-radius: 12px;
+      font-size: 28px; font-weight: bold; color: #0f3460; text-align: center;
+      font-family: inherit; background: #fafbfc; letter-spacing: 2px;
+      -moz-appearance: textfield;
+    }
+    .reagent-no-input::-webkit-inner-spin-button,
+    .reagent-no-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .reagent-no-input:focus { outline: none; border-color: #0f3460; background: #fff; box-shadow: 0 0 0 3px rgba(15,52,96,0.1); }
+    .reagent-hint { font-size: 12px; color: #aaa; margin-top: 6px; text-align: center; }
+
+    .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+    .photo-cell { border: 1.5px solid #e4e9f0; border-radius: 12px; padding: 12px; background: #fafbfc; text-align: center; }
+    .photo-cell-title { font-size: 12px; font-weight: bold; color: #666; margin-bottom: 8px; }
+    .photo-cell input[type="file"] { display: none; }
+    .cam-btn { display: block; width: 100%; padding: 9px 0; background: linear-gradient(135deg,#17a2b8,#138496); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-family: inherit; cursor: pointer; font-weight: bold; margin-bottom: 6px; }
+    .cam-btn.uploaded { background: linear-gradient(135deg,#28a745,#1e7e34); }
+    .prev-img { width: 100%; max-height: 110px; object-fit: cover; border-radius: 7px; margin-top: 4px; display: none; border: 1px solid #ddd; cursor: pointer; }
+    .photo-stat { font-size: 11px; color: #aaa; margin-top: 4px; min-height: 14px; }
+    .photo-stat.ok  { color: #28a745; font-weight: bold; }
+    .photo-stat.err { color: #dc3545; font-weight: bold; }
+    .view-lnk { font-size: 12px; color: #0f3460; text-decoration: underline; cursor: pointer; display: none; margin-top: 3px; }
+
+    .prog-wrap { display: none; margin-top: 10px; background: #f0f3fa; border-radius: 10px; padding: 12px; }
+    .prog-bar { width: 100%; height: 8px; background: #dde3ef; border-radius: 4px; overflow: hidden; }
+    .prog-fill { height: 100%; background: linear-gradient(90deg,#0f3460,#2980b9); width: 0%; transition: width 0.4s; border-radius: 4px; }
+    .prog-text { font-size: 13px; color: #555; margin-top: 7px; text-align: center; font-weight: bold; }
+
+    .btn-main { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-family: inherit; font-weight: bold; cursor: pointer; background: linear-gradient(135deg,#0f3460,#1a5276); color: #fff; margin-top: 8px; box-shadow: 0 2px 6px rgba(15,52,96,0.2); transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
+    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sub { width: 100%; padding: 12px; border: 1.5px solid #0f3460; border-radius: 12px; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; background: #fff; color: #0f3460; margin-top: 8px; }
+    .btn-ghost { width: 100%; padding: 10px; border: none; border-radius: 10px; font-size: 13px; font-family: inherit; cursor: pointer; background: none; color: #aaa; text-decoration: underline; margin-top: 4px; }
+
+    #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; flex-direction:column; }
+    #lightbox.show { display:flex; }
+    #lightbox img { max-width:95vw; max-height:78vh; border-radius:10px; object-fit:contain; }
+    .lb-btns { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; justify-content:center; }
+    .lb-btns button { padding:10px 22px; border:none; border-radius:8px; font-size:14px; cursor:pointer; font-family:inherit; font-weight:bold; }
+    #lb-close { background:#dc3545; color:#fff; }
+    #lb-share { background:#28a745; color:#fff; }
+    #lb-dl    { background:#0f3460; color:#fff; }
+
+    /* 日期輸入組合 */
+    .date-wrap { display: flex; gap: 6px; align-items: center; }
+    .date-wrap .field-input { flex: 1; }
+    .date-pick-btn {
+      flex-shrink: 0; padding: 0 12px; height: 44px; line-height: 44px;
+      background: #0f3460; color: #fff; border: none; border-radius: 10px;
+      font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .date-pick-hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-title">🚓 <span>埔墘</span>管理系統</div>
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tab-A" onclick="switchTab('A')">
+        <span class="tab-icon">🚗</span>扣車管制
+      </button>
+      <button class="tab-btn" id="tab-B" onclick="switchTab('B')">
+        <span class="tab-icon">🧪</span>快篩管制
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+<!-- ═══════════ PANEL A：扣車管制 ═══════════ -->
+<div class="panel active" id="panel-A">
+
+  <div class="search-card">
+    <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋修改（B 欄編號）</div>
+    <div class="search-row">
+      <input type="text" id="searchNoA" placeholder="請輸入編號">
+      <button class="search-btn" id="searchBtnA" onclick="doSearchA()">搜尋</button>
+    </div>
+    <div id="searchErrorA" class="error-msg"></div>
+  </div>
+  <div class="edit-badge" id="editMsgA">⚠️ 修改模式 — 資料已載入，修改後送出即覆蓋</div>
+  <input type="hidden" id="rowNumA">
+
+  <div class="card">
+    <div class="card-hd"><div class="card-hd-icon">📋</div>基本資料</div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">編號</span>
+        <input class="field-input" type="text" id="noA" placeholder="扣車單號。例：10948144">
+      </div>
+      <div class="field">
+        <span class="field-label">車號</span>
+        <input class="field-input" type="text" id="carIdA" placeholder="ABC-1234" oninput="this.value=this.value.toUpperCase()">
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">車主姓名</span>
+      <input class="field-input" type="text" id="ownerA" placeholder="請輸入車主姓名">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">移置日期</span>
+        <div class="date-wrap">
+          <input class="field-input" type="text" id="moveDateA" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="numeric">
+          <input class="date-pick-hidden" type="date" id="moveDateA_pick" onchange="pickDate(this,'moveDateA')">
+          <button class="date-pick-btn" onclick="document.getElementById('moveDateA_pick').showPicker?document.getElementById('moveDateA_pick').showPicker():document.getElementById('moveDateA_pick').click()">📅</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">入場日期（拖吊後填寫）</span>
+        <div class="date-wrap">
+          <input class="field-input" type="text" id="inDateA" placeholder="拖吊後再填" maxlength="10" oninput="fmtDate(this)" inputmode="numeric">
+          <input class="date-pick-hidden" type="date" id="inDateA_pick" onchange="pickDate(this,'inDateA')">
+          <button class="date-pick-btn" onclick="document.getElementById('inDateA_pick').showPicker?document.getElementById('inDateA_pick').showPicker():document.getElementById('inDateA_pick').click()">📅</button>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">車種</span>
+      <div class="chip-group" id="ctype-group" style="margin-top:4px;">
+        <label class="chip-label" id="chip-ctype-汽車"><input type="radio" name="ctype" value="汽車" onchange="refreshCarChips()"> 🚗 汽車</label>
+        <label class="chip-label" id="chip-ctype-機車"><input type="radio" name="ctype" value="機車" onchange="refreshCarChips()"> 🏍️ 機車</label>
+        <label class="chip-label" id="chip-ctype-微電車"><input type="radio" name="ctype" value="微電車" onchange="refreshCarChips()"> ⚡ 微電車</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><div class="card-hd-icon">📄</div>舉發資訊</div>
+    <div class="field">
+      <span class="field-label">監理機關</span>
+      <input class="field-input" type="text" id="officeA" placeholder="應到案處所。例：新北市交通事件裁決處">
+    </div>
+    <div class="field">
+      <span class="field-label">舉發單號</span>
+      <input class="field-input" type="text" id="ticketIdA" placeholder="請輸入舉發單號">
+    </div>
+    <div class="field">
+      <span class="field-label">違規法條</span>
+      <div class="chip-group" id="law-group" style="margin-top:4px;">
+        <label class="chip-label" id="chip-law-12條"><input type="checkbox" name="law" value="12條" onchange="refreshLawChips()"> 12條</label>
+        <label class="chip-label" id="chip-law-21條"><input type="checkbox" name="law" value="21條" onchange="refreshLawChips()"> 21條</label>
+        <label class="chip-label" id="chip-law-35條酒駕"><input type="checkbox" name="law" value="35條酒駕" onchange="refreshLawChips()"> 35條酒駕</label>
+        <label class="chip-label" id="chip-law-35條毒駕"><input type="checkbox" name="law" value="35條毒駕" onchange="refreshLawChips()"> 35條毒駕</label>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">舉發員警</span>
+        <input class="field-input" type="text" id="officerA" placeholder="姓名">
+      </div>
+      <div class="field">
+        <span class="field-label">牌照狀況</span>
+        <input class="field-input" type="text" id="plateStatusA" placeholder="本區新領/本區註銷重領…">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><div class="card-hd-icon">📷</div>照片上傳</div>
+    <div class="photo-grid">
+      <div class="photo-cell">
+        <div class="photo-cell-title">📋 扣車單（M欄）</div>
+        <input type="file" id="fileImpound" accept="image/*" capture="environment" onchange="handlePhoto('fileImpound','prevImpound','statImpound','btnImpound','vlnkImpound','impound')">
+        <button class="cam-btn" id="btnImpound" onclick="document.getElementById('fileImpound').click()">📸 拍照 / 選圖</button>
+        <img id="prevImpound" class="prev-img" onclick="openLB('impound')" title="點擊放大">
+        <div class="photo-stat" id="statImpound">尚未選擇</div>
+        <div class="view-lnk" id="vlnkImpound" onclick="openLB('impound')">🔍 放大查看</div>
+      </div>
+      <div class="photo-cell">
+        <div class="photo-cell-title">🗒️ 罰單（N欄）</div>
+        <input type="file" id="fileTicket" accept="image/*" capture="environment" onchange="handlePhoto('fileTicket','prevTicket','statTicket','btnTicket','vlnkTicket','ticket')">
+        <button class="cam-btn" id="btnTicket" onclick="document.getElementById('fileTicket').click()">📸 拍照 / 選圖</button>
+        <img id="prevTicket" class="prev-img" onclick="openLB('ticket')" title="點擊放大">
+        <div class="photo-stat" id="statTicket">尚未選擇</div>
+        <div class="view-lnk" id="vlnkTicket" onclick="openLB('ticket')">🔍 放大查看</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prog-wrap" id="progA"><div class="prog-bar"><div class="prog-fill" id="progA-fill"></div></div><div class="prog-text" id="progA-text"></div></div>
+  <button class="btn-main" id="btnA" onclick="submitA()">✅ 確認送出並存檔</button>
+  <button class="btn-sub" onclick="printLabel()">🖨️ 列印標籤</button>
+  <button class="btn-ghost" onclick="resetA()">清空 / 新增模式</button>
+</div>
+
+
+<!-- ═══════════ PANEL B：快篩管制 ═══════════ -->
+<div class="panel" id="panel-B">
+
+  <!-- 搜尋修改 -->
+  <div class="search-card">
+    <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋已存資料（輸入試劑編號）</div>
+    <div style="font-size:11px;color:#888;margin-top:3px;">若要新增直接填下方表單，搜尋用於查詢或修改舊資料</div>
+    <div class="search-row">
+      <input type="number" id="searchNoB" placeholder="例：20" min="1">
+      <button class="search-btn" id="searchBtnB" onclick="doSearchB()">搜尋</button>
+    </div>
+    <div id="searchErrorB" class="error-msg"></div>
+  </div>
+  <div class="edit-badge" id="editMsgB">⚠️ 修改模式 — 資料已載入，修改後送出即覆蓋</div>
+  <input type="hidden" id="rowNumB">
+
+  <!-- 試劑編號（大字輸入，單一欄位） -->
+  <div class="card">
+    <div class="card-hd"><div class="card-hd-icon">🔢</div>試劑編號</div>
+    <div class="field">
+      <span class="field-label">領到第幾個試劑（寫入 A 欄）</span>
+      <input type="number" class="reagent-no-input" id="reagentNoB" placeholder="例：20" min="1">
+      <div class="reagent-hint">領到第幾個試劑就填幾（例：領到第20個 → 填20）</div>
+    </div>
+  </div>
+
+  <!-- 採驗資料（固定一筆） -->
+  <div class="card">
+    <div class="card-hd"><div class="card-hd-icon">🧪</div>採驗資料</div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">採驗日期</span>
+<div class="date-wrap">
+          <input class="field-input" type="text" id="tdB" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="numeric">
+          <input class="date-pick-hidden" type="date" id="tdB_pick" onchange="pickDate(this,'tdB')">
+          <button class="date-pick-btn" onclick="document.getElementById('tdB_pick').showPicker?document.getElementById('tdB_pick').showPicker():document.getElementById('tdB_pick').click()">📅</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">採驗時間</span>
+        <input class="field-input" type="time" id="ttB" step="60" style="font-variant-numeric:tabular-nums;">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">嫌犯姓名</span>
+        <input class="field-input" type="text" id="tnB" placeholder="姓名">
+      </div>
+      <div class="field">
+        <span class="field-label">身分證字號</span>
+        <input class="field-input" type="text" id="tiB" placeholder="A123456789" oninput="this.value=this.value.toUpperCase()" maxlength="10">
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">犯罪行為</span>
+      <input class="field-input" type="text" id="tcrB" placeholder="請描述犯罪行為">
+    </div>
+    <div class="field">
+      <span class="field-label">檢驗結果</span>
+      <div class="chip-group" style="margin-top:6px;">
+        <label class="chip-label" id="rchip-pos" onclick="selResult('pos')"><input type="radio" name="resB"> □ 陽性</label>
+        <label class="chip-label" id="rchip-neg" onclick="selResult('neg')"><input type="radio" name="resB"> □ 陰性</label>
+        <label class="chip-label" id="rchip-ref" onclick="selResult('ref')"><input type="radio" name="resB"> □ 拒測</label>
+        <label class="chip-label" id="rchip-oth" onclick="selResult('oth')"><input type="radio" name="resB"> □ 其他</label>
+      </div>
+      <input class="other-text" type="text" id="rothB" placeholder="請輸入其他結果…">
+    </div>
+  </div>
+
+  <!-- 操作人員 -->
+  <div class="card">
+    <div class="card-hd"><div class="card-hd-icon">👮</div>操作人員</div>
+    <div class="field">
+      <span class="field-label">操作員警姓名</span>
+      <input class="field-input" type="text" id="operatorB" placeholder="請輸入姓名">
+    </div>
+  </div>
+
+  <div class="prog-wrap" id="progB"><div class="prog-bar"><div class="prog-fill" id="progB-fill"></div></div><div class="prog-text" id="progB-text"></div></div>
+  <button class="btn-main" id="btnB" onclick="submitB()">✅ 確認送出並存檔</button>
+  <button class="btn-ghost" onclick="resetB()">清空 / 新增模式</button>
+</div>
+
+</div><!-- /page-wrap -->
+
+<div id="lightbox">
+  <img id="lbImg" src="">
+  <div class="lb-btns">
+    <button id="lb-close" onclick="closeLB()">✕ 關閉</button>
+    <button id="lb-share" onclick="sharePhoto()">📤 分享</button>
+    <button id="lb-dl"    onclick="dlPhoto()">⬇️ 下載</button>
+  </div>
+</div>
+
+<script>
+var photos    = { impound:null, ticket:null };
+var driveUrls = { impound:'', ticket:'' };
+var lbKey     = '';
+var resultSelB = ''; // 快篩結果：'pos'/'neg'/'ref'/'oth'/''
+
+// ══ 頁籤 ══
+function switchTab(t){
+  ['A','B'].forEach(function(x){
+    document.getElementById('panel-'+x).classList.toggle('active',x===t);
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+  });
+}
+
+// ══ 初始化 ══
+(function init(){
+  document.getElementById('moveDateA').value = todaySlash();
+  document.getElementById('searchNoA').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchA(); });
+  document.getElementById('searchNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchB(); });
+  document.getElementById('reagentNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('tdB').focus(); });
+  // 快篩：採驗日期預設今天、時間預設現在
+  document.getElementById('tdB').value = todaySlash();
+  var now = new Date();
+  document.getElementById('ttB').value = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+})();
+// ══ 日期工具函式 ══
+// type="date" 的 value 格式固定是 yyyy-MM-dd（ISO）
+// 存入表格：ISO yyyy-MM-dd → 民國 yyy/MM/dd（純文字）
+// 讀取表格：民國 yyy/MM/dd 或 ISO yyyy-MM-dd → yyyy-MM-dd 給 type="date"
+
+// 今天的 ISO（給 type="date" 預設值）
+function todayISO(){ return new Date().toLocaleDateString('en-CA'); }
+
+// 存入前：西元任意格式 → 民國 yyy/MM/dd（純文字存表格）
+function slashToISO(s){
+  if(!s) return '';
+  s = String(s).trim();
+  var y,m2,d2;
+  // 西元 yyyy/MM/dd
+  var ma = s.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if(ma){ y=parseInt(ma[1],10); m2=ma[2]; d2=ma[3]; }
+  // ISO yyyy-MM-dd
+  var mb = !ma && s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(mb){ y=parseInt(mb[1],10); m2=mb[2]; d2=mb[3]; }
+  if(y && y > 1911){
+    return (y-1911)+'/'+m2+'/'+d2;
+  }
+  return s; // 已是民國或空白原樣
+}
+
+// 讀取後：任何格式 → 西元 yyyy/MM/dd（給文字欄顯示）
+// 支援：民國 yyy/MM/dd、ISO yyyy-MM-dd、西元 yyyy/MM/dd
+function toDateInput(s){
+  if(!s) return '';
+  s = String(s).trim();
+  // ISO yyyy-MM-dd → 西元 yyyy/MM/dd
+  var mISO = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(mISO) return mISO[1]+'/'+mISO[2]+'/'+mISO[3];
+  // 西元 yyyy/MM/dd 原樣
+  if(/^\d{4}\/\d{2}\/\d{2}$/.test(s)) return s;
+  // 民國 yyy/MM/dd 或 yyy/M/D → 加1911 → 西元
+  var mROC = s.match(/^(\d{1,3})\/(\d{1,2})\/(\d{1,2})$/);
+  if(mROC){
+    var ad = parseInt(mROC[1],10) + 1911;
+    return ad+'/'+('0'+mROC[2]).slice(-2)+'/'+('0'+mROC[3]).slice(-2);
+  }
+  return '';
+}
+function isoToSlash(s){ return toDateInput(s); }
+
+// 📅 選日期後填入文字欄（yyyy-MM-dd → 西元 yyyy/MM/dd）
+function pickDate(picker, targetId){
+  var v = picker.value; // yyyy-MM-dd
+  if(!v) return;
+  var p = v.split('-');
+  document.getElementById(targetId).value = p[0]+'/'+p[1]+'/'+p[2];
+}
+
+// 文字欄自動補斜線（只接受西元 4位年）
+function fmtDate(el){
+  var v = el.value.replace(/[^0-9]/g,'');
+  if(v.length > 4) v = v.slice(0,4)+'/'+v.slice(4);
+  if(v.length > 7) v = v.slice(0,7)+'/'+v.slice(7);
+  el.value = v.slice(0,10);
+}
+function todaySlash(){
+  var d=new Date();
+  return d.getFullYear()+'/'+(('0'+(d.getMonth()+1)).slice(-2))+'/'+('0'+d.getDate()).slice(-2);
+}
+
+// ══ 扣車：車種 / 法條 chip ══
+function refreshCarChips(){
+  document.querySelectorAll('#ctype-group .chip-label').forEach(function(lb){
+    lb.classList.toggle('sel-car', lb.querySelector('input').checked);
+  });
+}
+function refreshLawChips(){
+  document.querySelectorAll('#law-group .chip-label').forEach(function(lb){
+    lb.classList.toggle('sel-law', lb.querySelector('input').checked);
+  });
+}
+function restoreChecks(name, stored){
+  if(!stored) return;
+  document.querySelectorAll('input[name="'+name+'"]').forEach(function(inp){
+    inp.checked = stored.includes('■'+inp.value);
+  });
+  if(name==='ctype') refreshCarChips();
+  if(name==='law')   refreshLawChips();
+}
+function getRadioVal(name){ var el=document.querySelector('input[name="'+name+'"]:checked'); return el?el.value:''; }
+function getCheckVal(name){ var v=[]; document.querySelectorAll('input[name="'+name+'"]:checked').forEach(function(c){v.push(c.value);}); return v.join(','); }
+function fmtCheck(opts,sel){ var a=sel?sel.split(','):[]; return opts.map(function(o){return(a.includes(o)?'■':'□')+o;}).join(''); }
+
+// ══ 快篩：檢驗結果 chip（單筆固定） ══
+var RC = {pos:'sel-pos', neg:'sel-neg', ref:'sel-ref', oth:'sel-oth'};
+function selResult(v){
+  resultSelB = v;
+  ['pos','neg','ref','oth'].forEach(function(k){
+    var el = document.getElementById('rchip-'+k);
+    if(el) el.className = 'chip-label' + (k===v ? ' '+RC[k] : '');
+  });
+  document.getElementById('rothB').className = 'other-text' + (v==='oth' ? ' show' : '');
+}
+function getResultStr(){
+  var v = resultSelB;
+  if(!v) return '□陽性□陰性□拒測□其他';
+  var oth = (v==='oth') ? (document.getElementById('rothB').value||'') : '';
+  return v==='pos' ? '■陽性□陰性□拒測□其他' :
+         v==='neg' ? '□陽性■陰性□拒測□其他' :
+         v==='ref' ? '□陽性□陰性■拒測□其他' :
+                     '□陽性□陰性□拒測■其他：'+oth;
+}
+function restoreResult(stored){
+  resultSelB = '';
+  ['pos','neg','ref','oth'].forEach(function(k){ document.getElementById('rchip-'+k).className='chip-label'; });
+  document.getElementById('rothB').className = 'other-text';
+  if(!stored || stored==='□陽性□陰性□拒測□其他' || stored==='') return;
+  if     (stored.includes('■陽性')) selResult('pos');
+  else if(stored.includes('■陰性')) selResult('neg');
+  else if(stored.includes('■拒測')) selResult('ref');
+  else if(stored.includes('■其他')){
+    selResult('oth');
+    var m = stored.match(/■其他：(.*)/); if(m) document.getElementById('rothB').value = m[1];
+  }
+}
+
+// ══ 快篩搜尋 ══
+function doSearchB(){
+  var no = document.getElementById('searchNoB').value.trim();
+  if(!no){ showErr('searchErrorB','請輸入試劑編號'); return; }
+  hideErr('searchErrorB');
+  var btn = document.getElementById('searchBtnB');
+  btn.disabled=true; btn.textContent='搜尋中…';
+  google.script.run
+    .withSuccessHandler(function(res){
+      btn.disabled=false; btn.textContent='搜尋';
+      if(!res){ showErr('searchErrorB','查無此試劑編號'); return; }
+      if(res.error){ showErr('searchErrorB',res.error); return; }
+      var r = res.records && res.records[0] ? res.records[0] : {};
+      document.getElementById('rowNumB').value    = res.startRow;
+      document.getElementById('editMsgB').style.display = 'block';
+      document.getElementById('reagentNoB').value = res.reagentNo || no;
+      document.getElementById('tdB').value        = toDateInput(r.date||'');
+      document.getElementById('ttB').value        = r.time  || '';
+      document.getElementById('tnB').value        = r.name  || '';
+      document.getElementById('tiB').value        = r.idno  || '';
+      document.getElementById('tcrB').value       = r.crime || '';
+      document.getElementById('operatorB').value  = res.operator || '';
+      restoreResult(r.result);
+      alert('資料已載入！試劑編號：' + (res.reagentNo||no));
+    })
+    .withFailureHandler(function(err){
+      btn.disabled=false; btn.textContent='搜尋';
+      showErr('searchErrorB','連線錯誤：'+err.message);
+    })
+    .searchScreeningData(no);
+}
+
+// ══ 快篩送出 ══
+function submitB(){
+  var reagentNo = document.getElementById('reagentNoB').value.trim();
+  var operator  = document.getElementById('operatorB').value.trim();
+  if(!reagentNo){ alert('請輸入試劑編號'); return; }
+  if(!operator) { alert('請填寫操作人員'); return; }
+  var payload = {
+    rowNumB:   document.getElementById('rowNumB').value,
+    reagentNo: reagentNo,
+    qty:       1,
+    records: [{
+      date:  slashToISO(document.getElementById('tdB').value),
+      time:  document.getElementById('ttB').value,
+      name:  document.getElementById('tnB').value,
+      idno:  document.getElementById('tiB').value,
+      crime: document.getElementById('tcrB').value,
+      result:getResultStr()
+    }],
+    operator: operator
+  };
+  var btn = document.getElementById('btnB');
+  btn.disabled=true; btn.textContent='儲存中…';
+  setProgB(20,'寫入資料中…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res&&res.error){btn.disabled=false;btn.textContent='✅ 確認送出並存檔';hideProgB();alert('❌ '+res.error);return;}
+      setProgB(100,'✅ 存檔完成！');
+      setTimeout(resetB, 900);
+    })
+    .withFailureHandler(function(err){
+      btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgB(); alert('❌ '+err.message);
+    })
+    .saveScreeningData(payload);
+}
+
+function resetB(){
+  document.getElementById('reagentNoB').value  = '';
+  document.getElementById('tdB').value         = todaySlash();
+  var _now = new Date();
+  document.getElementById('ttB').value         = ('0'+_now.getHours()).slice(-2)+':'+('0'+_now.getMinutes()).slice(-2);
+  document.getElementById('tnB').value         = '';
+  document.getElementById('tiB').value         = '';
+  document.getElementById('tcrB').value        = '';
+  document.getElementById('rothB').value       = '';
+  document.getElementById('operatorB').value   = '';
+  document.getElementById('rowNumB').value     = '';
+  document.getElementById('searchNoB').value   = '';
+  document.getElementById('editMsgB').style.display = 'none';
+  document.getElementById('btnB').disabled     = false;
+  document.getElementById('btnB').textContent  = '✅ 確認送出並存檔';
+  restoreResult('');
+  hideProgB();
+}
+function setProgB(p,t){document.getElementById('progB').style.display='block';document.getElementById('progB-fill').style.width=p+'%';document.getElementById('progB-text').textContent=t;}
+function hideProgB(){document.getElementById('progB').style.display='none';}
+
+// ══ 扣車搜尋 ══
+function doSearchA(){
+  var no=document.getElementById('searchNoA').value.trim();
+  if(!no){showErr('searchErrorA','請輸入編號');return;}
+  hideErr('searchErrorA');
+  var btn=document.getElementById('searchBtnA');
+  btn.disabled=true; btn.textContent='搜尋中…';
+  google.script.run
+    .withSuccessHandler(function(res){
+      btn.disabled=false; btn.textContent='搜尋';
+      if(res&&res.error){showErr('searchErrorA',res.error);return;}
+      if(!res){alert('查無此編號');return;}
+      document.getElementById('rowNumA').value      = res.row;
+      document.getElementById('editMsgA').style.display = 'block';
+      document.getElementById('noA').value          = res.values[1]  || '';
+      document.getElementById('moveDateA').value    = toDateInput(res.values[2]||'');
+      document.getElementById('carIdA').value       = res.values[3]  || '';
+      document.getElementById('ownerA').value       = res.values[4]  || '';
+      restoreChecks('ctype', res.values[5]);
+      document.getElementById('officeA').value      = res.values[6]  || '';
+      document.getElementById('ticketIdA').value    = res.values[7]  || '';
+      restoreChecks('law', res.values[8]);
+      document.getElementById('officerA').value     = res.values[9]  || '';
+      document.getElementById('plateStatusA').value = res.values[10] || '';
+      document.getElementById('inDateA').value      = toDateInput(res.values[11]||'');
+      loadDrivePhoto(res.values[12],'impound');
+      loadDrivePhoto(res.values[13],'ticket');
+      alert('資料已載入！');
+    })
+    .withFailureHandler(function(err){btn.disabled=false;btn.textContent='搜尋';showErr('searchErrorA','連線錯誤：'+err.message);})
+    .searchData(no,'A');
+}
+
+// ══ 扣車送出 ══
+function submitA(){
+  var no=document.getElementById('noA').value.trim();
+  var carId=document.getElementById('carIdA').value.trim();
+  var moveDate=slashToISO(document.getElementById('moveDateA').value);
+  var cType=getRadioVal('ctype');
+  if(!no){alert('請填寫編號');return;}
+  if(!carId){alert('請填寫車號');return;}
+  if(!moveDate){alert('請填寫移置日期');return;}
+  if(!cType){alert('請選擇車種');return;}
+  var btn=document.getElementById('btnA');
+  btn.disabled=true; btn.textContent='處理中…';
+  setProgA(5,'① 儲存文字資料…');
+  var td={type:'A',rowNum:document.getElementById('rowNumA').value,no:no,moveDate:moveDate,carId:carId,
+    owner:document.getElementById('ownerA').value,carType:fmtCheck(['汽車','機車','微電車'],cType),
+    office:document.getElementById('officeA').value,ticketId:document.getElementById('ticketIdA').value,
+    law:fmtCheck(['12條','21條','35條酒駕','35條毒駕'],getCheckVal('law')),
+    officer:document.getElementById('officerA').value,
+    plateStatus:document.getElementById('plateStatusA').value,
+    inDate:slashToISO(document.getElementById('inDateA').value)};
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res&&res.error){btn.disabled=false;btn.textContent='✅ 確認送出並存檔';hideProgA();alert('❌ '+res.error);return;}
+      var sr=res.row; setProgA(25,'② 上傳扣車單照片…');
+      doUploadPhoto('impound',carId,no,function(iu){
+        setProgA(60,'③ 上傳罰單照片…');
+        doUploadPhoto('ticket',carId,no,function(tu){
+          setProgA(85,'④ 寫入照片連結…');
+          google.script.run
+            .withSuccessHandler(function(){setProgA(100,'✅ 完成！');setTimeout(resetA,900);})
+            .withFailureHandler(function(){setProgA(100,'⚠️ 連結寫入失敗');setTimeout(resetA,1500);})
+            .savePhotoUrls(sr,iu,tu);
+        });
+      });
+    })
+    .withFailureHandler(function(err){btn.disabled=false;btn.textContent='✅ 確認送出並存檔';hideProgA();alert('❌ '+err.message);})
+    .saveTextData(td);
+}
+function doUploadPhoto(key,carId,no,cb){
+  if(!photos[key]){cb(driveUrls[key]||'');return;}
+  google.script.run.withSuccessHandler(function(u){cb(u||'');}).withFailureHandler(function(){cb('');}).uploadPhoto(photos[key],key,carId,no);
+}
+function resetA(){
+  ['noA','carIdA','ownerA','officeA','ticketIdA','officerA','plateStatusA'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('moveDateA').value=todayISO();
+  document.getElementById('inDateA').value='';
+  document.querySelectorAll('input[name="ctype"],input[name="law"]').forEach(function(i){i.checked=false;});
+  refreshCarChips(); refreshLawChips();
+  ['Impound','Ticket'].forEach(function(k){
+    var lk=k.toLowerCase(); photos[lk]=null; driveUrls[lk]='';
+    document.getElementById('prev'+k).src=''; document.getElementById('prev'+k).style.display='none';
+    document.getElementById('vlnk'+k).style.display='none';
+    document.getElementById('stat'+k).className='photo-stat'; document.getElementById('stat'+k).textContent='尚未選擇';
+    document.getElementById('btn'+k).textContent='📸 拍照 / 選圖'; document.getElementById('btn'+k).classList.remove('uploaded');
+    document.getElementById('file'+k).value='';
+  });
+  document.getElementById('rowNumA').value=''; document.getElementById('editMsgA').style.display='none';
+  document.getElementById('searchNoA').value='';
+  document.getElementById('btnA').disabled=false; document.getElementById('btnA').textContent='✅ 確認送出並存檔';
+  hideProgA();
+}
+function setProgA(p,t){document.getElementById('progA').style.display='block';document.getElementById('progA-fill').style.width=p+'%';document.getElementById('progA-text').textContent=t;}
+function hideProgA(){document.getElementById('progA').style.display='none';}
+
+// ══ 照片共用 ══
+function handlePhoto(fid,pid,sid,bid,vid,key){
+  var file=document.getElementById(fid).files[0]; if(!file) return;
+  var statEl=document.getElementById(sid); statEl.className='photo-stat'; statEl.textContent='壓縮中…';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=1400,w=img.width,h=img.height;
+      if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>=w&&h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      var b64=cv.toDataURL('image/jpeg',0.72); var kb=Math.round(b64.length*0.75/1024);
+      photos[key]=b64;
+      document.getElementById(pid).src=b64; document.getElementById(pid).style.display='block';
+      document.getElementById(vid).style.display='block';
+      document.getElementById(bid).textContent='🔄 重拍 / 換圖'; document.getElementById(bid).classList.add('uploaded');
+      statEl.className='photo-stat ok'; statEl.textContent='✅ '+w+'×'+h+' · '+kb+'KB';
+    };
+    img.onerror=function(){statEl.className='photo-stat err';statEl.textContent='❌ 圖片無法讀取';};
+    img.src=e.target.result;
+  };
+  reader.onerror=function(){statEl.className='photo-stat err';statEl.textContent='❌ 讀取失敗';};
+  reader.readAsDataURL(file);
+}
+function loadDrivePhoto(url,key){
+  if(!url||typeof url!=='string'||!url.startsWith('http')) return;
+  driveUrls[key]=url;
+  var K=key.charAt(0).toUpperCase()+key.slice(1);
+  document.getElementById('vlnk'+K).style.display='block';
+  document.getElementById('btn'+K).textContent='🔄 重拍 / 換圖'; document.getElementById('btn'+K).classList.add('uploaded');
+  document.getElementById('stat'+K).className='photo-stat ok'; document.getElementById('stat'+K).textContent='✅ 已有照片';
+  var m=url.match(/\/d\/([^/?#]+)/);
+  if(m){var prev=document.getElementById('prev'+K); prev.src='https://drive.google.com/uc?export=view&id='+m[1]; prev.style.display='block'; prev.onerror=function(){prev.style.display='none';};}
+}
+function openLB(key){
+  lbKey=key;
+  if(photos[key]){document.getElementById('lbImg').src=photos[key];document.getElementById('lightbox').classList.add('show');}
+  else if(driveUrls[key]){window.open(driveUrls[key],'_blank');}
+}
+function closeLB(){document.getElementById('lightbox').classList.remove('show');}
+document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLB();});
+function dlPhoto(){
+  if(!photos[lbKey])return;
+  var n=(lbKey==='impound'?'扣車單_':'罰單_')+(document.getElementById('carIdA').value||'photo')+'.jpg';
+  var a=document.createElement('a');a.href=photos[lbKey];a.download=n;a.click();
+}
+function sharePhoto(){
+  if(photos[lbKey]){fetch(photos[lbKey]).then(function(r){return r.blob();}).then(function(blob){
+    var n=(lbKey==='impound'?'扣車單_':'罰單_')+(document.getElementById('carIdA').value||'photo')+'.jpg';
+    var f=new File([blob],n,{type:'image/jpeg'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:n});}
+    else{dlPhoto();alert('裝置不支援直接分享，已改為下載。');}
+  });}else if(driveUrls[lbKey]){window.open(driveUrls[lbKey],'_blank');}
+}
+
+function showErr(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
+function hideErr(id){var e=document.getElementById(id);if(e){e.style.display='none';}}
+
+// ══ 列印標籤：A5 直向 148×210mm，左右各74mm長條，中間虛線 ══
+function printLabel(){
+  var carId    = document.getElementById('carIdA').value.trim();
+  var law      = getCheckVal('law');
+  var moveDate = document.getElementById('moveDateA').value;
+  var cType    = getRadioVal('ctype');
+  if(!carId) return alert('請先輸入車號');
+  if(!cType) return alert('請先選擇車種');
+
+  var block =
+    '<div class="lb">'
+    +'<div class="lb-title">車輛保管標籤</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">車號</div>'
+    +'<div class="lb-val">'+carId+'</div>'
+    +'</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">車種</div>'
+    +'<div class="lb-val">'+cType+'</div>'
+    +'</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">違規法條</div>'
+    +'<div class="lb-val lb-law">'+(law||'（未選擇）')+'</div>'
+    +'</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">移置日期</div>'
+    +'<div class="lb-val">'+moveDate+'</div>'
+    +'</div>'
+    +'<div class="lb-plate">'+carId+'</div>'
+    +'<div class="lb-foot">'
+    +'<div class="lb-lbl">已郵寄資料予拖吊場日期</div>'
+    +'<div class="lb-blank">　　年　　月　　日</div>'
+    +'</div>'
+    +'</div>';
+
+  // 每條寬 74mm（148÷2），高 210mm，padding 內縮 5mm，可用寬 64mm
+  var css =
+    '@media print{ @page{ size:148mm 210mm; margin:0; } }'
+    +'*{ box-sizing:border-box; margin:0; padding:0; }'
+    +'body{ font-family:"Microsoft JhengHei",sans-serif; }'
+    +'.page{ width:148mm; height:210mm; display:flex; flex-direction:row; overflow:hidden; }'
+    +'.lb{'
+    +'  width:73mm; height:210mm; flex-shrink:0;'
+    +'  padding:8mm 5mm 8mm 5mm;'
+    +'  display:flex; flex-direction:column;'
+    +'}'
+    +'.divider{'
+    +'  flex-shrink:0; width:2mm; height:210mm;'
+    +'  border-left:2px dashed #333;'
+    +'  -webkit-print-color-adjust:exact; print-color-adjust:exact;'
+    +'}'
+    // 標題
+    +'.lb-title{'
+    +'  font-size:15px; font-weight:bold; text-align:center;'
+    +'  letter-spacing:2px; padding-bottom:5px;'
+    +'  border-bottom:2px solid #000; margin-bottom:6mm;'
+    +'}'
+    // 每個欄位區塊
+    +'.lb-section{'
+    +'  margin-bottom:5mm;'
+    +'}'
+    +'.lb-lbl{'
+    +'  font-size:9px; color:#555; letter-spacing:1px;'
+    +'  text-transform:uppercase; margin-bottom:1mm;'
+    +'}'
+    +'.lb-plate{'
+    +'  flex:1; display:flex; align-items:center; justify-content:center;'
+    +'  writing-mode:vertical-rl; text-orientation:mixed;'
+    +'  font-size:52px; font-weight:900; letter-spacing:6px;'
+    +'  color:#000; line-height:1;'
+    +'}'
+    +'.lb-val{'
+    +'  font-size:20px; font-weight:bold;'
+    +'  letter-spacing:1px; line-height:1.2;'
+    +'  border-bottom:1.5px solid #000; padding-bottom:1mm;'
+    +'  word-break:break-all;'
+    +'}'
+    +'.lb-law{ font-size:16px; }'
+    // 底部郵寄欄
+    +'.lb-foot{'
+    +'  margin-top:auto;'
+    +'  border-top:1.5px dashed #000;'
+    +'  padding-top:4mm;'
+    +'}'
+    +'.lb-blank{'
+    +'  font-size:16px; margin-top:3mm;'
+    +'  letter-spacing:3px;'
+    +'}';
+
+  var pw = window.open('','_blank');
+  pw.document.write(
+    '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>'+css+'</style></head><body>'
+    +'<div class="page">'
+    + block
+    +'<svg width="2mm" height="210mm" style="flex-shrink:0;overflow:visible;">'
+    +'<line x1="1" y1="0" x2="1" y2="793" stroke="#333" stroke-width="2" stroke-dasharray="8,6" vector-effect="non-scaling-stroke"/>'
+    +'</svg>'
+    + block
+    +'</div>'
+    +'<script>window.onload=function(){window.print();setTimeout(function(){window.close();},600);}<\/script>'
+    +'</body></html>'
+  );
+  pw.document.close();
+}
+</script>
+</body>
+</html>

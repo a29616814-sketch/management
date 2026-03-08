@@ -234,16 +234,16 @@
     <div class="photo-grid">
       <div class="photo-cell">
         <div class="photo-cell-title">📋 扣車單（M欄）</div>
-        <input type="file" id="fileImpound" accept="image/*" capture="environment" onchange="handlePhoto('fileImpound','prevImpound','statImpound','btnImpound','vlnkImpound','impound')">
-        <button class="cam-btn" id="btnImpound" onclick="document.getElementById('fileImpound').click()">📸 拍照 / 選圖</button>
+        <input type="file" id="fileImpound" accept="image/*" onchange="handlePhoto('fileImpound','prevImpound','statImpound','btnImpound','vlnkImpound','impound')">
+        <button class="cam-btn" id="btnImpound" onclick="document.getElementById('fileImpound').click()">🖼️ 選取照片</button>
         <img id="prevImpound" class="prev-img" onclick="openLB('impound')" title="點擊放大">
         <div class="photo-stat" id="statImpound">尚未選擇</div>
         <div class="view-lnk" id="vlnkImpound" onclick="openLB('impound')">🔍 放大查看</div>
       </div>
       <div class="photo-cell">
         <div class="photo-cell-title">🗒️ 罰單（N欄）</div>
-        <input type="file" id="fileTicket" accept="image/*" capture="environment" onchange="handlePhoto('fileTicket','prevTicket','statTicket','btnTicket','vlnkTicket','ticket')">
-        <button class="cam-btn" id="btnTicket" onclick="document.getElementById('fileTicket').click()">📸 拍照 / 選圖</button>
+        <input type="file" id="fileTicket" accept="image/*" onchange="handlePhoto('fileTicket','prevTicket','statTicket','btnTicket','vlnkTicket','ticket')">
+        <button class="cam-btn" id="btnTicket" onclick="document.getElementById('fileTicket').click()">🖼️ 選取照片</button>
         <img id="prevTicket" class="prev-img" onclick="openLB('ticket')" title="點擊放大">
         <div class="photo-stat" id="statTicket">尚未選擇</div>
         <div class="view-lnk" id="vlnkTicket" onclick="openLB('ticket')">🔍 放大查看</div>
@@ -689,7 +689,7 @@ function resetA(){
     document.getElementById('prev'+k).src=''; document.getElementById('prev'+k).style.display='none';
     document.getElementById('vlnk'+k).style.display='none';
     document.getElementById('stat'+k).className='photo-stat'; document.getElementById('stat'+k).textContent='尚未選擇';
-    document.getElementById('btn'+k).textContent='📸 拍照 / 選圖'; document.getElementById('btn'+k).classList.remove('uploaded');
+    document.getElementById('btn'+k).textContent='🖼️ 選取照片'; document.getElementById('btn'+k).classList.remove('uploaded');
     document.getElementById('file'+k).value='';
   });
   document.getElementById('rowNumA').value=''; document.getElementById('editMsgA').style.display='none';

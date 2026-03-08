@@ -353,10 +353,33 @@
 </div>
 
 <script>
-var photos    = { impound:null, ticket:null };
+// ══════════════════════════════════════════════
+// ★ 部署後請把下面 GAS_URL 換成你的 GAS Web App 網址
+// ★ SECRET_TOKEN 要跟 GAS Code.gs 裡的 TOKEN 一樣
+// ══════════════════════════════════════════════
+var GAS_URL      = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+var SECRET_TOKEN = 'pkq2025secret';
+
+var photos    = { impound:null, ticket:'' };
 var driveUrls = { impound:'', ticket:'' };
 var lbKey     = '';
-var resultSelB = ''; // 快篩結果：'pos'/'neg'/'ref'/'oth'/''
+var resultSelB = '';
+
+// ══ 呼叫 GAS 後端（fetch POST，Content-Type: text/plain 避免 CORS preflight） ══
+function gasCall(payload, onSuccess, onFail){
+  payload.token = SECRET_TOKEN;
+  fetch(GAS_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body:    JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data && data.error){ if(onFail) onFail({message:data.error}); else alert('❌ '+data.error); return; }
+    onSuccess(data);
+  })
+  .catch(function(e){ if(onFail) onFail({message:e.message}); else alert('❌ 連線失敗：'+e.message); });
+}
 
 // ══ 頁籤 ══
 function switchTab(t){
@@ -505,11 +528,10 @@ function doSearchB(){
   hideErr('searchErrorB');
   var btn = document.getElementById('searchBtnB');
   btn.disabled=true; btn.textContent='搜尋中…';
-  google.script.run
-    .withSuccessHandler(function(res){
+  gasCall({action:'searchScreeningData', reagentNo:no},
+    function(res){
       btn.disabled=false; btn.textContent='搜尋';
       if(!res){ showErr('searchErrorB','查無此試劑編號'); return; }
-      if(res.error){ showErr('searchErrorB',res.error); return; }
       var r = res.records && res.records[0] ? res.records[0] : {};
       document.getElementById('rowNumB').value    = res.startRow;
       document.getElementById('editMsgB').style.display = 'block';
@@ -522,12 +544,9 @@ function doSearchB(){
       document.getElementById('operatorB').value  = res.operator || '';
       restoreResult(r.result);
       alert('資料已載入！試劑編號：' + (res.reagentNo||no));
-    })
-    .withFailureHandler(function(err){
-      btn.disabled=false; btn.textContent='搜尋';
-      showErr('searchErrorB','連線錯誤：'+err.message);
-    })
-    .searchScreeningData(no);
+    },
+    function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorB','連線錯誤：'+err.message); }
+  );
 }
 
 // ══ 快篩送出 ══
@@ -553,16 +572,13 @@ function submitB(){
   var btn = document.getElementById('btnB');
   btn.disabled=true; btn.textContent='儲存中…';
   setProgB(20,'寫入資料中…');
-  google.script.run
-    .withSuccessHandler(function(res){
-      if(res&&res.error){btn.disabled=false;btn.textContent='✅ 確認送出並存檔';hideProgB();alert('❌ '+res.error);return;}
+  gasCall({action:'saveScreeningData', data:payload},
+    function(res){
       setProgB(100,'✅ 存檔完成！');
       setTimeout(resetB, 900);
-    })
-    .withFailureHandler(function(err){
-      btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgB(); alert('❌ '+err.message);
-    })
-    .saveScreeningData(payload);
+    },
+    function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgB(); alert('❌ '+err.message); }
+  );
 }
 
 function resetB(){
@@ -593,10 +609,9 @@ function doSearchA(){
   hideErr('searchErrorA');
   var btn=document.getElementById('searchBtnA');
   btn.disabled=true; btn.textContent='搜尋中…';
-  google.script.run
-    .withSuccessHandler(function(res){
+  gasCall({action:'searchData', no:no, type:'A'},
+    function(res){
       btn.disabled=false; btn.textContent='搜尋';
-      if(res&&res.error){showErr('searchErrorA',res.error);return;}
       if(!res){alert('查無此編號');return;}
       document.getElementById('rowNumA').value      = res.row;
       document.getElementById('editMsgA').style.display = 'block';
@@ -614,9 +629,9 @@ function doSearchA(){
       loadDrivePhoto(res.values[12],'impound');
       loadDrivePhoto(res.values[13],'ticket');
       alert('資料已載入！');
-    })
-    .withFailureHandler(function(err){btn.disabled=false;btn.textContent='搜尋';showErr('searchErrorA','連線錯誤：'+err.message);})
-    .searchData(no,'A');
+    },
+    function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
+  );
 }
 
 // ══ 扣車送出 ══
@@ -639,31 +654,33 @@ function submitA(){
     officer:document.getElementById('officerA').value,
     plateStatus:document.getElementById('plateStatusA').value,
     inDate:slashToISO(document.getElementById('inDateA').value)};
-  google.script.run
-    .withSuccessHandler(function(res){
-      if(res&&res.error){btn.disabled=false;btn.textContent='✅ 確認送出並存檔';hideProgA();alert('❌ '+res.error);return;}
+  gasCall({action:'saveTextData', data:td},
+    function(res){
       var sr=res.row; setProgA(25,'② 上傳扣車單照片…');
       doUploadPhoto('impound',carId,no,function(iu){
         setProgA(60,'③ 上傳罰單照片…');
         doUploadPhoto('ticket',carId,no,function(tu){
           setProgA(85,'④ 寫入照片連結…');
-          google.script.run
-            .withSuccessHandler(function(){setProgA(100,'✅ 完成！');setTimeout(resetA,900);})
-            .withFailureHandler(function(){setProgA(100,'⚠️ 連結寫入失敗');setTimeout(resetA,1500);})
-            .savePhotoUrls(sr,iu,tu);
+          gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu},
+            function(){ setProgA(100,'✅ 完成！'); setTimeout(resetA,900); },
+            function(){ setProgA(100,'⚠️ 連結寫入失敗'); setTimeout(resetA,1500); }
+          );
         });
       });
-    })
-    .withFailureHandler(function(err){btn.disabled=false;btn.textContent='✅ 確認送出並存檔';hideProgA();alert('❌ '+err.message);})
-    .saveTextData(td);
+    },
+    function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgA(); alert('❌ '+err.message); }
+  );
 }
 function doUploadPhoto(key,carId,no,cb){
-  if(!photos[key]){cb(driveUrls[key]||'');return;}
-  google.script.run.withSuccessHandler(function(u){cb(u||'');}).withFailureHandler(function(){cb('');}).uploadPhoto(photos[key],key,carId,no);
+  if(!photos[key]){ cb(driveUrls[key]||''); return; }
+  gasCall({action:'uploadPhoto', base64:photos[key], key:key, carId:carId, no:no},
+    function(res){ cb((res&&res.url)||''); },
+    function(){ cb(''); }
+  );
 }
 function resetA(){
   ['noA','carIdA','ownerA','officeA','ticketIdA','officerA','plateStatusA'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('moveDateA').value=todayISO();
+  document.getElementById('moveDateA').value=todaySlash();
   document.getElementById('inDateA').value='';
   document.querySelectorAll('input[name="ctype"],input[name="law"]').forEach(function(i){i.checked=false;});
   refreshCarChips(); refreshLawChips();

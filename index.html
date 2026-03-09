@@ -120,6 +120,43 @@
       font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     .date-pick-hidden { display: none; }
+
+    /* ── 手機全面優化 ── */
+    /* 防止 iOS 自動放大輸入框（font-size < 16px 會觸發） */
+    input, select, textarea, button {
+      font-size: 16px !important;
+      font-family: inherit;
+    }
+    /* 搜尋欄 iOS 樣式重設 */
+    .search-row input {
+      -webkit-appearance: none;
+      border-radius: 9px;
+    }
+    /* 按鈕 tap 優化 */
+    .btn-sub, .btn-ghost, .search-btn, .cam-btn, .date-pick-btn {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .btn-main { touch-action: manipulation; }
+    /* chip 觸控區域加大 */
+    .chip-label { min-height: 44px; }
+    /* 時間輸入組合 */
+    .time-wrap { display: flex; gap: 6px; align-items: center; }
+    .time-wrap .field-input { flex: 1; text-align: center; letter-spacing: 2px; font-weight: bold; }
+    .time-now-btn {
+      flex-shrink: 0; padding: 0 10px; height: 44px;
+      background: #17a2b8; color: #fff; border: none; border-radius: 10px;
+      font-size: 15px !important; cursor: pointer; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    /* 進度條文字 */
+    .prog-text { font-size: 14px !important; }
+    /* 卡片標題不要全大寫（中文正常，英文可讀） */
+    .field-label { text-transform: none; letter-spacing: 0; font-size: 13px !important; }
+    /* safe area padding for iPhone notch/home bar */
+    .page-wrap { padding-bottom: calc(50px + env(safe-area-inset-bottom)); }
+    /* 搜尋卡片說明文字 */
+    .search-desc { font-size: 12px !important; color: #888; margin-top: 3px; }
   </style>
 </head>
 <body>
@@ -146,7 +183,7 @@
   <div class="search-card">
     <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋修改（B 欄編號）</div>
     <div class="search-row">
-      <input type="text" id="searchNoA" placeholder="請輸入編號">
+      <input type="text" id="searchNoA" placeholder="請輸入編號" inputmode="numeric" autocomplete="off">
       <button class="search-btn" id="searchBtnA" onclick="doSearchA()">搜尋</button>
     </div>
     <div id="searchErrorA" class="error-msg"></div>
@@ -163,7 +200,7 @@
       </div>
       <div class="field">
         <span class="field-label">車號</span>
-        <input class="field-input" type="text" id="carIdA" placeholder="ABC-1234" oninput="this.value=this.value.toUpperCase()">
+        <input class="field-input" type="text" id="carIdA" placeholder="ABC-1234" oninput="this.value=this.value.toUpperCase()" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false">
       </div>
     </div>
     <div class="field">
@@ -174,7 +211,7 @@
       <div class="field">
         <span class="field-label">移置日期</span>
         <div class="date-wrap">
-          <input class="field-input" type="text" id="moveDateA" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="numeric">
+          <input class="field-input" type="text" id="moveDateA" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off" inputmode="text" autocomplete="off">
           <input class="date-pick-hidden" type="date" id="moveDateA_pick" onchange="pickDate(this,'moveDateA')">
           <button class="date-pick-btn" onclick="document.getElementById('moveDateA_pick').showPicker?document.getElementById('moveDateA_pick').showPicker():document.getElementById('moveDateA_pick').click()">📅</button>
         </div>
@@ -182,7 +219,7 @@
       <div class="field">
         <span class="field-label">入場日期（拖吊後填寫）</span>
         <div class="date-wrap">
-          <input class="field-input" type="text" id="inDateA" placeholder="拖吊後再填" maxlength="10" oninput="fmtDate(this)" inputmode="numeric">
+          <input class="field-input" type="text" id="inDateA" placeholder="拖吊後再填" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off" inputmode="text" autocomplete="off">
           <input class="date-pick-hidden" type="date" id="inDateA_pick" onchange="pickDate(this,'inDateA')">
           <button class="date-pick-btn" onclick="document.getElementById('inDateA_pick').showPicker?document.getElementById('inDateA_pick').showPicker():document.getElementById('inDateA_pick').click()">📅</button>
         </div>
@@ -264,9 +301,9 @@
   <!-- 搜尋修改 -->
   <div class="search-card">
     <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋已存資料（輸入試劑編號）</div>
-    <div style="font-size:11px;color:#888;margin-top:3px;">若要新增直接填下方表單，搜尋用於查詢或修改舊資料</div>
+    <div class="search-desc">若要新增直接填下方表單，搜尋用於查詢或修改舊資料</div>
     <div class="search-row">
-      <input type="number" id="searchNoB" placeholder="例：20" min="1">
+      <input type="text" id="searchNoB" placeholder="例：20" inputmode="numeric" autocomplete="off">
       <button class="search-btn" id="searchBtnB" onclick="doSearchB()">搜尋</button>
     </div>
     <div id="searchErrorB" class="error-msg"></div>
@@ -279,7 +316,7 @@
     <div class="card-hd"><div class="card-hd-icon">🔢</div>試劑編號</div>
     <div class="field">
       <span class="field-label">領到第幾個試劑（寫入 A 欄）</span>
-      <input type="number" class="reagent-no-input" id="reagentNoB" placeholder="例：20" min="1">
+      <input type="text" class="reagent-no-input" id="reagentNoB" placeholder="例：20" inputmode="numeric" autocomplete="off">
       <div class="reagent-hint">領到第幾個試劑就填幾（例：領到第20個 → 填20）</div>
     </div>
   </div>
@@ -291,14 +328,17 @@
       <div class="field">
         <span class="field-label">採驗日期</span>
 <div class="date-wrap">
-          <input class="field-input" type="text" id="tdB" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="numeric">
+          <input class="field-input" type="text" id="tdB" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off" inputmode="text" autocomplete="off">
           <input class="date-pick-hidden" type="date" id="tdB_pick" onchange="pickDate(this,'tdB')">
           <button class="date-pick-btn" onclick="document.getElementById('tdB_pick').showPicker?document.getElementById('tdB_pick').showPicker():document.getElementById('tdB_pick').click()">📅</button>
         </div>
       </div>
       <div class="field">
         <span class="field-label">採驗時間</span>
-        <input class="field-input" type="time" id="ttB" step="60" style="font-variant-numeric:tabular-nums;">
+        <div class="time-wrap">
+          <input class="field-input" type="text" id="ttB" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="fmtTime(this)">
+          <button class="time-now-btn" onclick="setNowTime()" type="button">🕐 現在</button>
+        </div>
       </div>
     </div>
     <div class="field-row">
@@ -308,7 +348,7 @@
       </div>
       <div class="field">
         <span class="field-label">身分證字號</span>
-        <input class="field-input" type="text" id="tiB" placeholder="A123456789" oninput="this.value=this.value.toUpperCase()" maxlength="10">
+        <input class="field-input" type="text" id="tiB" placeholder="A123456789" oninput="this.value=this.value.toUpperCase()" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
       </div>
     </div>
     <div class="field">
@@ -360,7 +400,7 @@
 var GAS_URL      = 'https://script.google.com/macros/s/AKfycbw3iiVA4jx9qErsa2Exn2c7gJ6GEZeI0Dul7ufDoz1Q-ghYIc47nAVvvF4DpCvoRRhb/exec';
 var SECRET_TOKEN = 'pkq2025secret';
 
-var photos    = { impound:null, ticket:'' };
+var photos    = { impound:null, ticket:null };
 var driveUrls = { impound:'', ticket:'' };
 var lbKey     = '';
 var resultSelB = '';
@@ -397,8 +437,7 @@ function switchTab(t){
   document.getElementById('reagentNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('tdB').focus(); });
   // 快篩：採驗日期預設今天、時間預設現在
   document.getElementById('tdB').value = todaySlash();
-  var now = new Date();
-  document.getElementById('ttB').value = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+  setNowTime();
 })();
 // ══ 日期工具函式 ══
 // type="date" 的 value 格式固定是 yyyy-MM-dd（ISO）
@@ -407,6 +446,20 @@ function switchTab(t){
 
 // 今天的 ISO（給 type="date" 預設值）
 function todayISO(){ return new Date().toLocaleDateString('en-CA'); }
+
+// 時間自動補冒號：輸入數字自動在2位後加 :
+function fmtTime(el){
+  var v = el.value.replace(/[^0-9]/g,'');
+  if(v.length > 2) v = v.slice(0,2)+':'+v.slice(2);
+  el.value = v.slice(0,5);
+}
+// 填入現在時間
+function setNowTime(){
+  var now = new Date();
+  var hh = ('0'+now.getHours()).slice(-2);
+  var mm = ('0'+now.getMinutes()).slice(-2);
+  document.getElementById('ttB').value = hh+':'+mm;
+}
 
 // 存入前：西元任意格式 → 民國 yyy/MM/dd（純文字存表格）
 function slashToISO(s){
@@ -867,3 +920,4 @@ function printLabel(){
 </script>
 </body>
 </html>
+

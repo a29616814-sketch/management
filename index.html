@@ -917,7 +917,7 @@ function doSearchA(){
       document.getElementById('inDateA').value      = toDateInput(res.values[11]||'');
       loadDrivePhoto(res.values[12],'impound');
       loadDrivePhoto(res.values[13],'ticket');
-      alert('資料已載入！');
+      alert('資料已載入！（修改模式）');
     },
     function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
   );
@@ -925,34 +925,92 @@ function doSearchA(){
 
 // ══ 扣車送出 ══
 function submitA(){
-  var no=document.getElementById('noA').value.trim();
-  var carId=document.getElementById('carIdA').value.trim();
-  var moveDate=slashToISO(document.getElementById('moveDateA').value);
-  var cType=getRadioVal('ctype');
-  if(!no){alert('請填寫編號');return;}
-  if(!carId){alert('請填寫車號');return;}
-  if(!moveDate){alert('請填寫移置日期');return;}
-  if(!cType){alert('請選擇車種');return;}
-  var btn=document.getElementById('btnA');
-  btn.disabled=true; btn.textContent='處理中…';
+  var no      = document.getElementById('noA').value.trim();
+  var carId   = document.getElementById('carIdA').value.trim();
+  var moveDate= slashToISO(document.getElementById('moveDateA').value);
+  var cType   = getRadioVal('ctype');
+
+  // 基本欄位驗證
+  if(!no)      { alert('請填寫編號'); return; }
+  if(!carId)   { alert('請填寫車號'); return; }
+  if(!moveDate){ alert('請填寫移置日期'); return; }
+  if(!cType)   { alert('請選擇車種'); return; }
+
+  // ★ 編號格式：固定8碼純數字
+  if(!/^\d{8}$/.test(no)){
+    showGuardModal(
+      '⚠️', '編號格式錯誤',
+      '編號必須為 <strong>8碼數字</strong>，目前輸入：「' + no + '」，請確認後重新輸入。',
+      [{ text:'知道了', cls:'guard-btn-confirm', cb: function(){ closeGuardModal(); document.getElementById('noA').focus(); } }]
+    );
+    return;
+  }
+
+  var isEditMode = !!document.getElementById('rowNumA').value;
+  var btn = document.getElementById('btnA');
+  btn.disabled = true; btn.textContent = '檢查中…';
+
+  // ★ 編輯模式（搜尋帶入）直接寫入，不查重複
+  if(isEditMode){
+    doSubmitA(no, '修改');
+    return;
+  }
+
+  // ★ 新增模式：先查編號是否已存在
+  gasCall(
+    { action: 'checkImpoundBeforeSave', no: no },
+    function(res){
+      if(res && res.exists){
+        btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
+        showGuardModal(
+          '🚫', '編號已存在',
+          '編號 <strong>' + no + '</strong> 已有資料（車號：' + (res.carId||'—') + '），請使用「搜尋」帶入舊資料後再進行修改，禁止重複新增。',
+          [{ text:'知道了', cls:'guard-btn-confirm', cb: closeGuardModal }]
+        );
+        return;
+      }
+      // 編號不存在，正常新增
+      doSubmitA(no, '新增');
+    },
+    function(err){
+      // 連線失敗不阻擋（容錯）
+      btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
+      alert('❌ 重複檢查失敗：' + err.message + '\n請重新嘗試。');
+    }
+  );
+}
+
+// 實際執行扣車寫入
+function doSubmitA(no, logNote){
+  var carId   = document.getElementById('carIdA').value.trim();
+  var moveDate= slashToISO(document.getElementById('moveDateA').value);
+  var cType   = getRadioVal('ctype');
+  var btn     = document.getElementById('btnA');
+  btn.disabled = true; btn.textContent = '處理中…';
   setProgA(5,'① 儲存文字資料…');
-  var td={type:'A',rowNum:document.getElementById('rowNumA').value,no:no,moveDate:moveDate,carId:carId,
-    owner:document.getElementById('ownerA').value,carType:fmtCheck(['汽車','機車','微電車'],cType),
-    office:document.getElementById('officeA').value,ticketId:document.getElementById('ticketIdA').value,
-    law:fmtCheck(['12條','21條','35條酒駕','35條毒駕'],getCheckVal('law')),
-    officer:document.getElementById('officerA').value,
-    plateStatus:document.getElementById('plateStatusA').value,
-    inDate:slashToISO(document.getElementById('inDateA').value)};
+  var td = {
+    type:'A', rowNum: document.getElementById('rowNumA').value,
+    no: no, moveDate: moveDate, carId: carId,
+    owner:       document.getElementById('ownerA').value,
+    carType:     fmtCheck(['汽車','機車','微電車'], cType),
+    office:      document.getElementById('officeA').value,
+    ticketId:    document.getElementById('ticketIdA').value,
+    law:         fmtCheck(['12條','21條','35條酒駕','35條毒駕'], getCheckVal('law')),
+    officer:     document.getElementById('officerA').value,
+    plateStatus: document.getElementById('plateStatusA').value,
+    inDate:      slashToISO(document.getElementById('inDateA').value),
+    logNote:     logNote || '新增'
+  };
   gasCall({action:'saveTextData', data:td},
     function(res){
-      var sr=res.row; setProgA(25,'② 上傳扣車單照片…');
-      doUploadPhoto('impound',carId,no,function(iu){
+      var sr = res.row; setProgA(25,'② 上傳扣車單照片…');
+      doUploadPhoto('impound', carId, no, function(iu){
         setProgA(60,'③ 上傳罰單照片…');
-        doUploadPhoto('ticket',carId,no,function(tu){
+        doUploadPhoto('ticket', carId, no, function(tu){
           setProgA(85,'④ 寫入照片連結…');
           gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu},
-            function(){ setProgA(100,'✅ 完成！'); setTimeout(resetA,900); },
-            function(){ setProgA(100,'⚠️ 連結寫入失敗'); setTimeout(resetA,1500); }
+            function(){ setProgA(100,'✅ 完成！'); setTimeout(resetA, 900); },
+            function(){ setProgA(100,'⚠️ 連結寫入失敗'); setTimeout(resetA, 1500); }
           );
         });
       });

@@ -149,6 +149,37 @@
     .page-wrap { padding-bottom: calc(50px + env(safe-area-inset-bottom)); }
     .search-desc { font-size: 12px !important; color: #888; margin-top: 3px; }
 
+    /* ── 防呆 Modal ── */
+    #guardModal {
+      display: none; position: fixed; inset: 0; z-index: 9100;
+      background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px;
+    }
+    #guardModal.show { display: flex; }
+    .guard-box {
+      background: #fff; border-radius: 18px; width: 100%; max-width: 400px;
+      padding: 24px 22px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    }
+    .guard-icon { font-size: 36px; text-align: center; margin-bottom: 10px; }
+    .guard-title { font-size: 17px; font-weight: bold; color: #1a1a2e; text-align: center; margin-bottom: 10px; }
+    .guard-msg { font-size: 14px; color: #444; line-height: 1.7; text-align: center; margin-bottom: 20px; }
+    .guard-msg strong { color: #c0392b; }
+    .guard-btns { display: flex; flex-direction: column; gap: 8px; }
+    .guard-btn-confirm {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      background: #dc3545; color: #fff; font-size: 15px; font-family: inherit;
+      font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .guard-btn-cancel {
+      width: 100%; padding: 12px; border: 1.5px solid #ccc; border-radius: 10px;
+      background: #fff; color: #555; font-size: 15px; font-family: inherit;
+      font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    /* 試劑編號欄位檢查中狀態 */
+    .reagent-no-input.checking { border-color: #fd7e14; background: #fffaf0; }
+    .reagent-no-input.blocked  { border-color: #dc3545; background: #fff5f5; }
+    .reagent-no-input.warned   { border-color: #ffc107; background: #fffdf0; }
+    .reagent-no-input.clear    { border-color: #28a745; background: #f0fff4; }
+
     /* ── 領用狀況 Modal ── */
     #usageModal {
       display: none; position: fixed; inset: 0; z-index: 9000;
@@ -420,6 +451,16 @@
 
 </div><!-- /page-wrap -->
 
+<!-- ★ 防呆 Modal -->
+<div id="guardModal">
+  <div class="guard-box">
+    <div class="guard-icon" id="guardIcon">⚠️</div>
+    <div class="guard-title" id="guardTitle"></div>
+    <div class="guard-msg" id="guardMsg"></div>
+    <div class="guard-btns" id="guardBtns"></div>
+  </div>
+</div>
+
 <!-- ★ 領用狀況 Modal（由下往上的 bottom sheet） -->
 <div id="usageModal" onclick="if(event.target===this)closeUsageModal()">
   <div class="usage-sheet">
@@ -455,6 +496,14 @@ var driveUrls = { impound:'', ticket:'' };
 var lbKey     = '';
 var resultSelB = '';
 
+// 防呆狀態
+var guardState = {
+  blocked:  false,   // 情境1：禁止儲存
+  warned:   false,   // 情境2：已通過警告確認
+  checked:  false,   // 已完成檢查
+  existingOperator: ''
+};
+
 // ══ 呼叫 GAS 後端（fetch POST，Content-Type: text/plain 避免 CORS preflight） ══
 function gasCall(payload, onSuccess, onFail){
   payload.token = SECRET_TOKEN;
@@ -485,6 +534,7 @@ function switchTab(t){
   document.getElementById('searchNoA').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchA(); });
   document.getElementById('searchNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchB(); });
   document.getElementById('reagentNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('tdB').focus(); });
+  document.getElementById('reagentNoB').addEventListener('blur', checkReagentGuard);
   // 快篩：採驗日期預設今天、時間預設現在
   document.getElementById('tdB').value = todaySlash();
   setNowTime();
@@ -636,16 +686,125 @@ function doSearchB(){
   );
 }
 
+// ══ ★ 防呆：試劑編號離開欄位時檢查 ══
+function checkReagentGuard(){
+  // 搜尋模式（rowNumB 有值）代表已用搜尋帶入，不需防呆
+  if(document.getElementById('rowNumB').value) return;
+
+  var no = document.getElementById('reagentNoB').value.trim();
+  if(!no) return;
+
+  var inp = document.getElementById('reagentNoB');
+  inp.classList.remove('checking','blocked','warned','clear');
+  inp.classList.add('checking');
+  guardState.blocked = false;
+  guardState.warned  = false;
+  guardState.checked = false;
+  guardState.existingOperator = '';
+
+  gasCall(
+    { action: 'checkReagentBeforeSave', reagentNo: no },
+    function(res){
+      inp.classList.remove('checking');
+      guardState.checked = true;
+
+      if(!res || !res.exists){
+        // 全新編號，直接放行
+        inp.classList.add('clear');
+        return;
+      }
+
+      var hasName     = !!(res.name && String(res.name).trim());
+      var hasIdno     = !!(res.idno && String(res.idno).trim());
+      var hasOperator = !!(res.operator && String(res.operator).trim());
+
+      if(hasName && hasIdno){
+        // 情境1：資料完整，禁止覆蓋
+        inp.classList.add('blocked');
+        guardState.blocked = true;
+        showGuardModal(
+          '🚫', '禁止覆蓋',
+          '試劑編號 <strong>' + no + '</strong> 資料完整，如需更正，請先使用「搜尋」帶入原資料後再進行更正。',
+          [{ text:'知道了', cls:'guard-btn-confirm', cb: function(){ closeGuardModal(); document.getElementById('reagentNoB').focus(); } }]
+        );
+      } else if(hasOperator){
+        // 情境2：資料不全但有操作人員，需確認
+        inp.classList.add('warned');
+        guardState.existingOperator = String(res.operator).trim();
+        showGuardModal(
+          '⚠️', '請確認覆蓋',
+          '試劑編號 <strong>' + no + '</strong> 目前由「<strong>' + guardState.existingOperator + '</strong>」領用中，請確認是否覆蓋。',
+          [
+            { text:'確認覆蓋', cls:'guard-btn-confirm', cb: function(){ guardState.warned = true; inp.classList.remove('warned'); inp.classList.add('clear'); closeGuardModal(); } },
+            { text:'取消操作', cls:'guard-btn-cancel',  cb: function(){ closeGuardModal(); document.getElementById('reagentNoB').value=''; inp.classList.remove('warned'); guardState.checked=false; } }
+          ]
+        );
+      } else {
+        // 有資料但操作人員也空白，直接放行（允許補填）
+        inp.classList.add('clear');
+      }
+    },
+    function(err){
+      inp.classList.remove('checking');
+      // 連線失敗不阻擋操作，僅 log
+      console.warn('checkReagentGuard 連線失敗：', err.message);
+    }
+  );
+}
+
+function showGuardModal(icon, title, msg, btns){
+  document.getElementById('guardIcon').textContent  = icon;
+  document.getElementById('guardTitle').textContent = title;
+  document.getElementById('guardMsg').innerHTML     = msg;
+  var btnsEl = document.getElementById('guardBtns');
+  btnsEl.innerHTML = '';
+  btns.forEach(function(b){
+    var el = document.createElement('button');
+    el.className   = b.cls;
+    el.textContent = b.text;
+    el.onclick     = b.cb;
+    btnsEl.appendChild(el);
+  });
+  document.getElementById('guardModal').classList.add('show');
+}
+function closeGuardModal(){
+  document.getElementById('guardModal').classList.remove('show');
+}
+
 // ══ 快篩送出 ══
 function submitB(){
   var reagentNo = document.getElementById('reagentNoB').value.trim();
   var operator  = document.getElementById('operatorB').value.trim();
   if(!reagentNo){ alert('請輸入試劑編號'); return; }
   if(!operator) { alert('請填寫操作人員'); return; }
+
+  // 防呆攔截
+  if(guardState.blocked){
+    showGuardModal(
+      '🚫', '禁止儲存',
+      '試劑編號 <strong>' + reagentNo + '</strong> 資料完整，請先使用「搜尋」帶入後再更正。',
+      [{ text:'知道了', cls:'guard-btn-confirm', cb: closeGuardModal }]
+    );
+    return;
+  }
+  // 情境2：有操作人員但尚未確認覆蓋
+  if(guardState.checked && !guardState.warned && guardState.existingOperator){
+    showGuardModal(
+      '⚠️', '請確認覆蓋',
+      '試劑編號 <strong>' + reagentNo + '</strong> 目前由「<strong>' + guardState.existingOperator + '</strong>」領用中，請確認是否覆蓋。',
+      [
+        { text:'確認覆蓋', cls:'guard-btn-confirm', cb: function(){ guardState.warned=true; closeGuardModal(); submitB(); } },
+        { text:'取消操作', cls:'guard-btn-cancel',  cb: closeGuardModal }
+      ]
+    );
+    return;
+  }
+
   var payload = {
-    rowNumB:   document.getElementById('rowNumB').value,
-    reagentNo: reagentNo,
-    qty:       1,
+    rowNumB:      document.getElementById('rowNumB').value,
+    reagentNo:    reagentNo,
+    qty:          1,
+    overrideNote: guardState.warned ? ('確認覆蓋原領用人：' + guardState.existingOperator) : '正常儲存',
     records: [{
       date:  slashToISO(document.getElementById('tdB').value),
       time:  document.getElementById('ttB').value,
@@ -683,6 +842,11 @@ function resetB(){
   document.getElementById('editMsgB').style.display = 'none';
   document.getElementById('btnB').disabled     = false;
   document.getElementById('btnB').textContent  = '✅ 確認送出並存檔';
+  // 防呆狀態重置
+  guardState.blocked = false; guardState.warned = false;
+  guardState.checked = false; guardState.existingOperator = '';
+  var inp = document.getElementById('reagentNoB');
+  inp.classList.remove('checking','blocked','warned','clear');
   restoreResult('');
   hideProgB();
 }

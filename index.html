@@ -122,25 +122,20 @@
     .date-pick-hidden { display: none; }
 
     /* ── 手機全面優化 ── */
-    /* 防止 iOS 自動放大輸入框（font-size < 16px 會觸發） */
     input, select, textarea, button {
       font-size: 16px !important;
       font-family: inherit;
     }
-    /* 搜尋欄 iOS 樣式重設 */
     .search-row input {
       -webkit-appearance: none;
       border-radius: 9px;
     }
-    /* 按鈕 tap 優化 */
     .btn-sub, .btn-ghost, .search-btn, .cam-btn, .date-pick-btn {
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
     .btn-main { touch-action: manipulation; }
-    /* chip 觸控區域加大 */
     .chip-label { min-height: 44px; }
-    /* 時間輸入組合 */
     .time-wrap { display: flex; gap: 6px; align-items: center; }
     .time-wrap .field-input { flex: 1; text-align: center; letter-spacing: 2px; font-weight: bold; }
     .time-now-btn {
@@ -149,14 +144,54 @@
       font-size: 15px !important; cursor: pointer; white-space: nowrap;
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
-    /* 進度條文字 */
     .prog-text { font-size: 14px !important; }
-    /* 卡片標題不要全大寫（中文正常，英文可讀） */
     .field-label { text-transform: none; letter-spacing: 0; font-size: 13px !important; }
-    /* safe area padding for iPhone notch/home bar */
     .page-wrap { padding-bottom: calc(50px + env(safe-area-inset-bottom)); }
-    /* 搜尋卡片說明文字 */
     .search-desc { font-size: 12px !important; color: #888; margin-top: 3px; }
+
+    /* ── 領用狀況 Modal ── */
+    #usageModal {
+      display: none; position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,0.55); align-items: flex-end; justify-content: center;
+    }
+    #usageModal.show { display: flex; }
+    .usage-sheet {
+      background: #fff; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 640px; max-height: 80vh;
+      display: flex; flex-direction: column;
+      padding: 0 0 env(safe-area-inset-bottom);
+    }
+    .usage-sheet-hd {
+      padding: 16px 20px 12px;
+      border-bottom: 1.5px solid #f0f2f7;
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .usage-sheet-title { font-size: 16px; font-weight: bold; color: #1a1a2e; }
+    .usage-sheet-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #f0f2f7; border: none; font-size: 18px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .usage-sheet-body { overflow-y: auto; padding: 12px 16px 20px; flex: 1; }
+    .usage-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px; margin-bottom: 6px;
+      border: 1.5px solid #e4e9f0; background: #fafbfc;
+    }
+    .usage-row.warn { background: #fff8e1; border-color: #ffc107; }
+    .usage-row.ok   { background: #f0fff4; border-color: #28a745; }
+    .usage-row.idle { background: #f8f0ff; border-color: #6f42c1; }
+    .usage-no { font-size: 22px; font-weight: bold; color: #0f3460; min-width: 38px; text-align: center; }
+    .usage-info { flex: 1; font-size: 14px; }
+    .usage-operator { font-weight: bold; color: #333; }
+    .usage-sub { font-size: 12px; color: #888; margin-top: 2px; }
+    .usage-badge { font-size: 12px; font-weight: bold; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+    .usage-badge.warn { background: #ffc107; color: #5a3e00; }
+    .usage-badge.ok   { background: #28a745; color: #fff; }
+    .usage-badge.idle { background: #6f42c1; color: #fff; }
+    .usage-empty { text-align: center; color: #aaa; padding: 30px 0; font-size: 15px; }
+    .usage-loading { text-align: center; color: #0f3460; padding: 30px 0; font-size: 15px; }
   </style>
 </head>
 <body>
@@ -378,10 +413,25 @@
 
   <div class="prog-wrap" id="progB"><div class="prog-bar"><div class="prog-fill" id="progB-fill"></div></div><div class="prog-text" id="progB-text"></div></div>
   <button class="btn-main" id="btnB" onclick="submitB()">✅ 確認送出並存檔</button>
+  <!-- ★ 新增：領用狀況按鈕 -->
+  <button class="btn-sub" onclick="openUsageModal()">📋 領用狀況</button>
   <button class="btn-ghost" onclick="resetB()">清空 / 新增模式</button>
 </div>
 
 </div><!-- /page-wrap -->
+
+<!-- ★ 領用狀況 Modal（由下往上的 bottom sheet） -->
+<div id="usageModal" onclick="if(event.target===this)closeUsageModal()">
+  <div class="usage-sheet">
+    <div class="usage-sheet-hd">
+      <div class="usage-sheet-title">📋 領用狀況（近30筆）</div>
+      <button class="usage-sheet-close" onclick="closeUsageModal()">✕</button>
+    </div>
+    <div class="usage-sheet-body" id="usageBody">
+      <div class="usage-loading">載入中…</div>
+    </div>
+  </div>
+</div>
 
 <div id="lightbox">
   <img id="lbImg" src="">
@@ -439,21 +489,15 @@ function switchTab(t){
   document.getElementById('tdB').value = todaySlash();
   setNowTime();
 })();
-// ══ 日期工具函式 ══
-// type="date" 的 value 格式固定是 yyyy-MM-dd（ISO）
-// 存入表格：ISO yyyy-MM-dd → 民國 yyy/MM/dd（純文字）
-// 讀取表格：民國 yyy/MM/dd 或 ISO yyyy-MM-dd → yyyy-MM-dd 給 type="date"
 
-// 今天的 ISO（給 type="date" 預設值）
+// ══ 日期工具函式 ══
 function todayISO(){ return new Date().toLocaleDateString('en-CA'); }
 
-// 時間自動補冒號：輸入數字自動在2位後加 :
 function fmtTime(el){
   var v = el.value.replace(/[^0-9]/g,'');
   if(v.length > 2) v = v.slice(0,2)+':'+v.slice(2);
   el.value = v.slice(0,5);
 }
-// 填入現在時間
 function setNowTime(){
   var now = new Date();
   var hh = ('0'+now.getHours()).slice(-2);
@@ -461,34 +505,26 @@ function setNowTime(){
   document.getElementById('ttB').value = hh+':'+mm;
 }
 
-// 存入前：西元任意格式 → 民國 yyy/MM/dd（純文字存表格）
 function slashToISO(s){
   if(!s) return '';
   s = String(s).trim();
   var y,m2,d2;
-  // 西元 yyyy/MM/dd
   var ma = s.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
   if(ma){ y=parseInt(ma[1],10); m2=ma[2]; d2=ma[3]; }
-  // ISO yyyy-MM-dd
   var mb = !ma && s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(mb){ y=parseInt(mb[1],10); m2=mb[2]; d2=mb[3]; }
   if(y && y > 1911){
     return (y-1911)+'/'+m2+'/'+d2;
   }
-  return s; // 已是民國或空白原樣
+  return s;
 }
 
-// 讀取後：任何格式 → 西元 yyyy/MM/dd（給文字欄顯示）
-// 支援：民國 yyy/MM/dd、ISO yyyy-MM-dd、西元 yyyy/MM/dd
 function toDateInput(s){
   if(!s) return '';
   s = String(s).trim();
-  // ISO yyyy-MM-dd → 西元 yyyy/MM/dd
   var mISO = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(mISO) return mISO[1]+'/'+mISO[2]+'/'+mISO[3];
-  // 西元 yyyy/MM/dd 原樣
   if(/^\d{4}\/\d{2}\/\d{2}$/.test(s)) return s;
-  // 民國 yyy/MM/dd 或 yyy/M/D → 加1911 → 西元
   var mROC = s.match(/^(\d{1,3})\/(\d{1,2})\/(\d{1,2})$/);
   if(mROC){
     var ad = parseInt(mROC[1],10) + 1911;
@@ -498,15 +534,13 @@ function toDateInput(s){
 }
 function isoToSlash(s){ return toDateInput(s); }
 
-// 📅 選日期後填入文字欄（yyyy-MM-dd → 西元 yyyy/MM/dd）
 function pickDate(picker, targetId){
-  var v = picker.value; // yyyy-MM-dd
+  var v = picker.value;
   if(!v) return;
   var p = v.split('-');
   document.getElementById(targetId).value = p[0]+'/'+p[1]+'/'+p[2];
 }
 
-// 文字欄自動補斜線（只接受西元 4位年）
 function fmtDate(el){
   var v = el.value.replace(/[^0-9]/g,'');
   if(v.length > 4) v = v.slice(0,4)+'/'+v.slice(4);
@@ -654,6 +688,83 @@ function resetB(){
 }
 function setProgB(p,t){document.getElementById('progB').style.display='block';document.getElementById('progB-fill').style.width=p+'%';document.getElementById('progB-text').textContent=t;}
 function hideProgB(){document.getElementById('progB').style.display='none';}
+
+// ══ ★ 領用狀況 Modal ══
+function openUsageModal(){
+  document.getElementById('usageModal').classList.add('show');
+  document.getElementById('usageBody').innerHTML = '<div class="usage-loading">載入中…</div>';
+  gasCall(
+    { action: 'getUsageStatus', limit: 30 },
+    function(res){
+      renderUsage(res.rows || []);
+    },
+    function(err){
+      document.getElementById('usageBody').innerHTML =
+        '<div class="usage-empty">❌ 載入失敗：' + err.message + '</div>';
+    }
+  );
+}
+
+function closeUsageModal(){
+  document.getElementById('usageModal').classList.remove('show');
+}
+
+// rows 由 GAS 回傳，格式：由下往上30筆，每筆 { reagentNo, operator, name, idno }
+// reagentNo = A欄；operator = 操作人員；name = 嫌犯姓名；idno = 身分證字號
+function renderUsage(rows){
+  var body = document.getElementById('usageBody');
+  if(!rows || rows.length === 0){
+    body.innerHTML = '<div class="usage-empty">目前無資料</div>';
+    return;
+  }
+  var html = '';
+  for(var i = 0; i < rows.length; i++){
+    var r = rows[i];
+    var no       = String(r.reagentNo || '').trim();
+    var operator = String(r.operator  || '').trim();
+    var name     = String(r.name      || '').trim();
+    var idno     = String(r.idno      || '').trim();
+
+    var rowClass, badgeClass, badgeText, operatorText, subText;
+
+    if(!operator){
+      // 操作人員未填 → 在所內
+      rowClass    = 'usage-row idle';
+      badgeClass  = 'usage-badge idle';
+      badgeText   = '在所內';
+      operatorText = '（未指定）';
+      subText     = '';
+    } else if(!name || !idno){
+      // 操作人員有填，但姓名或身分證缺漏 → 警告
+      rowClass    = 'usage-row warn';
+      badgeClass  = 'usage-badge warn';
+      badgeText   = '資料不全';
+      operatorText = operator;
+      var missing = [];
+      if(!name) missing.push('姓名');
+      if(!idno) missing.push('身分證');
+      subText     = '缺：' + missing.join('、');
+    } else {
+      // 完整 → 正常
+      rowClass    = 'usage-row ok';
+      badgeClass  = 'usage-badge ok';
+      badgeText   = '正常';
+      operatorText = operator;
+      subText     = name + '　' + idno;
+    }
+
+    html +=
+      '<div class="' + rowClass + '">' +
+        '<div class="usage-no">' + (no || '-') + '</div>' +
+        '<div class="usage-info">' +
+          '<div class="usage-operator">' + operatorText + '</div>' +
+          (subText ? '<div class="usage-sub">' + subText + '</div>' : '') +
+        '</div>' +
+        '<div class="' + badgeClass + '">' + badgeText + '</div>' +
+      '</div>';
+  }
+  body.innerHTML = html;
+}
 
 // ══ 扣車搜尋 ══
 function doSearchA(){
@@ -847,7 +958,6 @@ function printLabel(){
     +'</div>'
     +'</div>';
 
-  // 每條寬 74mm（148÷2），高 210mm，padding 內縮 5mm，可用寬 64mm
   var css =
     '@media print{ @page{ size:148mm 210mm; margin:0; } }'
     +'*{ box-sizing:border-box; margin:0; padding:0; }'
@@ -863,13 +973,11 @@ function printLabel(){
     +'  border-left:2px dashed #333;'
     +'  -webkit-print-color-adjust:exact; print-color-adjust:exact;'
     +'}'
-    // 標題
     +'.lb-title{'
     +'  font-size:15px; font-weight:bold; text-align:center;'
     +'  letter-spacing:2px; padding-bottom:5px;'
     +'  border-bottom:2px solid #000; margin-bottom:6mm;'
     +'}'
-    // 每個欄位區塊
     +'.lb-section{'
     +'  margin-bottom:5mm;'
     +'}'
@@ -890,7 +998,6 @@ function printLabel(){
     +'  word-break:break-all;'
     +'}'
     +'.lb-law{ font-size:16px; }'
-    // 底部郵寄欄
     +'.lb-foot{'
     +'  margin-top:auto;'
     +'  border-top:1.5px dashed #000;'
@@ -920,4 +1027,3 @@ function printLabel(){
 </script>
 </body>
 </html>
-

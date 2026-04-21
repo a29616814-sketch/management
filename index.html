@@ -1032,101 +1032,44 @@ function sharePhoto(){
 function showErr(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
 function hideErr(id){var e=document.getElementById(id);if(e){e.style.display='none';}}
 
-// ══ 列印標籤：A5 直向，中間虛線，左右各一份 ══
+// ══ 列印標籤：呼叫 GAS 產生真正的 A5 PDF，直接下載 ══
 function printLabel(){
   var carId    = document.getElementById('carIdA').value.trim();
   var law      = getCheckVal('law');
   var moveDate = document.getElementById('moveDateA').value;
   var cType    = getRadioVal('ctype');
-  if(!carId) return alert('請先輸入車號');
-  if(!cType) return alert('請先選擇車種');
 
-  var block =
-    '<div class="lb">'
-    +'<div class="lb-title">車輛保管標籤</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">車號</div>'
-    +'<div class="lb-val">'+carId+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">車種</div>'
-    +'<div class="lb-val">'+cType+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">違規法條</div>'
-    +'<div class="lb-val lb-law">'+(law||'（未選擇）')+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">移置日期</div>'
-    +'<div class="lb-val">'+moveDate+'</div>'
-    +'</div>'
-    +'<div class="lb-plate">'+carId+'</div>'
-    +'<div class="lb-foot">'
-    +'<div class="lb-lbl">已郵寄資料予拖吊場日期</div>'
-    +'<div class="lb-blank">　　年　　月　　日</div>'
-    +'</div>'
-    +'</div>';
+  if(!carId){ alert('請先輸入車號'); return; }
+  if(!cType){ alert('請先選擇車種'); return; }
 
-  var css =
-    '@page{ size:148mm 210mm portrait; margin:0; }'
-    +'@media print{ html,body{ width:148mm; height:210mm; } }'
-    +'*{ box-sizing:border-box; margin:0; padding:0; }'
-    +'body{ font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif; }'
-    +'.page{ width:148mm; height:210mm; display:flex; flex-direction:row; overflow:hidden; }'
-    +'.lb{'
-    +'  width:73mm; height:210mm; flex-shrink:0;'
-    +'  padding:8mm 5mm 8mm 5mm;'
-    +'  display:flex; flex-direction:column;'
-    +'}'
-    +'.lb-title{'
-    +'  font-size:15px; font-weight:bold; text-align:center;'
-    +'  letter-spacing:2px; padding-bottom:5px;'
-    +'  border-bottom:2px solid #000; margin-bottom:6mm;'
-    +'}'
-    +'.lb-section{'
-    +'  margin-bottom:5mm;'
-    +'}'
-    +'.lb-lbl{'
-    +'  font-size:9px; color:#555; letter-spacing:1px; margin-bottom:1mm;'
-    +'}'
-    +'.lb-plate{'
-    +'  flex:1; display:flex; align-items:center; justify-content:center;'
-    +'  writing-mode:vertical-rl; text-orientation:mixed;'
-    +'  font-size:52px; font-weight:900; letter-spacing:6px;'
-    +'  color:#000; line-height:1;'
-    +'}'
-    +'.lb-val{'
-    +'  font-size:20px; font-weight:bold;'
-    +'  letter-spacing:1px; line-height:1.2;'
-    +'  border-bottom:1.5px solid #000; padding-bottom:1mm;'
-    +'  word-break:break-all;'
-    +'}'
-    +'.lb-law{ font-size:16px; }'
-    +'.lb-foot{'
-    +'  margin-top:auto;'
-    +'  border-top:1.5px dashed #000;'
-    +'  padding-top:4mm;'
-    +'}'
-    +'.lb-blank{'
-    +'  font-size:16px; margin-top:3mm;'
-    +'  letter-spacing:3px;'
-    +'}';
+  var btn = document.querySelector('.btn-sub');
+  btn.disabled = true;
+  btn.textContent = '⏳ 產生中…';
 
-  var pw = window.open('','_blank');
-  pw.document.write(
-    '<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    +'<style>'+css+'</style></head><body>'
-    +'<div class="page">'
-    + block
-    +'<svg width="2mm" height="210mm" style="flex-shrink:0;overflow:visible;">'
-    +'<line x1="1" y1="0" x2="1" y2="793" stroke="#333" stroke-width="2" stroke-dasharray="8,6" vector-effect="non-scaling-stroke"/>'
-    +'</svg>'
-    + block
-    +'</div>'
-    +'<script>window.onload=function(){window.print();setTimeout(function(){window.close();},600);}<\/script>'
-    +'</body></html>'
+  gasCall(
+    { action:'generateLabelPdf', carId:carId, cType:cType, law:law, moveDate:moveDate },
+    function(res){
+      btn.disabled = false;
+      btn.textContent = '🖨️ 匯出標籤 PDF';
+      if(!res || !res.pdf){ alert('❌ PDF 產生失敗'); return; }
+      // base64 → Blob → 直接下載，同事開啟就是正確 A5
+      var binary = atob(res.pdf);
+      var bytes  = new Uint8Array(binary.length);
+      for(var i=0; i<binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      var blob = new Blob([bytes], {type:'application/pdf'});
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href     = url;
+      a.download = res.filename || ('標籤_'+carId+'.pdf');
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
+    },
+    function(err){
+      btn.disabled = false;
+      btn.textContent = '🖨️ 匯出標籤 PDF';
+      alert('❌ 連線失敗：' + err.message);
+    }
   );
-  pw.document.close();
 }
 </script>
 </body>

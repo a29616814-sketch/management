@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
-  <!-- PDF 產生套件 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
   <style>
     * { box-sizing: border-box; }
     body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; background: #edf1f7; min-height: 100vh; -webkit-overflow-scrolling: touch; overflow-x: hidden; }
@@ -1034,131 +1032,101 @@ function sharePhoto(){
 function showErr(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
 function hideErr(id){var e=document.getElementById(id);if(e){e.style.display='none';}}
 
-// ══════════════════════════════════════════════════════════════
-// ★ 列印標籤 → 用隱藏 HTML 截圖產生 A5 PDF（html2canvas + jsPDF）
-//   完全靠瀏覽器渲染中文，不需字型嵌入
-// ══════════════════════════════════════════════════════════════
+// ══ 列印標籤：A5 直向，中間虛線，左右各一份 ══
 function printLabel(){
   var carId    = document.getElementById('carIdA').value.trim();
   var law      = getCheckVal('law');
   var moveDate = document.getElementById('moveDateA').value;
   var cType    = getRadioVal('ctype');
+  if(!carId) return alert('請先輸入車號');
+  if(!cType) return alert('請先選擇車種');
 
-  if(!carId){ alert('請先輸入車號'); return; }
-  if(!cType){ alert('請先選擇車種'); return; }
+  var block =
+    '<div class="lb">'
+    +'<div class="lb-title">車輛保管標籤</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">車號</div>'
+    +'<div class="lb-val">'+carId+'</div>'
+    +'</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">車種</div>'
+    +'<div class="lb-val">'+cType+'</div>'
+    +'</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">違規法條</div>'
+    +'<div class="lb-val lb-law">'+(law||'（未選擇）')+'</div>'
+    +'</div>'
+    +'<div class="lb-section">'
+    +'<div class="lb-lbl">移置日期</div>'
+    +'<div class="lb-val">'+moveDate+'</div>'
+    +'</div>'
+    +'<div class="lb-plate">'+carId+'</div>'
+    +'<div class="lb-foot">'
+    +'<div class="lb-lbl">已郵寄資料予拖吊場日期</div>'
+    +'<div class="lb-blank">　　年　　月　　日</div>'
+    +'</div>'
+    +'</div>';
 
-  if(typeof window.jspdf === 'undefined' && typeof jspdf === 'undefined'){
-    alert('❌ PDF 模組尚未載入，請確認網路連線後重新整理頁面。'); return;
-  }
-  if(typeof html2canvas === 'undefined'){
-    alert('❌ html2canvas 尚未載入，請確認網路連線後重新整理頁面。'); return;
-  }
+  var css =
+    '@page{ size:148mm 210mm portrait; margin:0; }'
+    +'@media print{ html,body{ width:148mm; height:210mm; } }'
+    +'*{ box-sizing:border-box; margin:0; padding:0; }'
+    +'body{ font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif; }'
+    +'.page{ width:148mm; height:210mm; display:flex; flex-direction:row; overflow:hidden; }'
+    +'.lb{'
+    +'  width:73mm; height:210mm; flex-shrink:0;'
+    +'  padding:8mm 5mm 8mm 5mm;'
+    +'  display:flex; flex-direction:column;'
+    +'}'
+    +'.lb-title{'
+    +'  font-size:15px; font-weight:bold; text-align:center;'
+    +'  letter-spacing:2px; padding-bottom:5px;'
+    +'  border-bottom:2px solid #000; margin-bottom:6mm;'
+    +'}'
+    +'.lb-section{'
+    +'  margin-bottom:5mm;'
+    +'}'
+    +'.lb-lbl{'
+    +'  font-size:9px; color:#555; letter-spacing:1px; margin-bottom:1mm;'
+    +'}'
+    +'.lb-plate{'
+    +'  flex:1; display:flex; align-items:center; justify-content:center;'
+    +'  writing-mode:vertical-rl; text-orientation:mixed;'
+    +'  font-size:52px; font-weight:900; letter-spacing:6px;'
+    +'  color:#000; line-height:1;'
+    +'}'
+    +'.lb-val{'
+    +'  font-size:20px; font-weight:bold;'
+    +'  letter-spacing:1px; line-height:1.2;'
+    +'  border-bottom:1.5px solid #000; padding-bottom:1mm;'
+    +'  word-break:break-all;'
+    +'}'
+    +'.lb-law{ font-size:16px; }'
+    +'.lb-foot{'
+    +'  margin-top:auto;'
+    +'  border-top:1.5px dashed #000;'
+    +'  padding-top:4mm;'
+    +'}'
+    +'.lb-blank{'
+    +'  font-size:16px; margin-top:3mm;'
+    +'  letter-spacing:3px;'
+    +'}';
 
-  var lawDisplay = law ? law.split(',').join('　') : '（未選擇）';
-
-  // ── A5 尺寸：148mm × 210mm；以 3× 解析度渲染 ──
-  // 96 dpi × 3 = 288 dpi；1mm ≈ 3.7795px
-  var SCALE = 3;
-  var PX_W  = Math.round(148 * 3.7795 * SCALE);   // 1679px
-  var PX_H  = Math.round(210 * 3.7795 * SCALE);   // 2385px
-  var HALF  = Math.round(PX_W / 2);
-
-  // ── 單欄 HTML（在 JS 裡組字串，避免中文被截斷） ──
-  function colHTML(carId, cType, lawDisplay, moveDate){
-    return [
-      '<div style="width:'+(HALF-2)+'px;height:'+PX_H+'px;padding:30px 24px 24px;',
-      'box-sizing:border-box;display:flex;flex-direction:column;',
-      'font-family:\'Microsoft JhengHei\',\'PingFang TC\',\'Noto Sans TC\',sans-serif;">',
-
-      // 標題
-      '<div style="text-align:center;font-size:34px;font-weight:900;color:#0f3460;',
-      'letter-spacing:4px;padding-bottom:12px;border-bottom:3px solid #0f3460;margin-bottom:20px;">',
-      '車輛保管標籤</div>',
-
-      // 車號
-      '<div style="margin-bottom:16px;">',
-      '<div style="font-size:20px;color:#888;margin-bottom:4px;">車號 / Plate No.</div>',
-      '<div style="font-size:52px;font-weight:900;color:#0f3460;letter-spacing:3px;',
-      'border-bottom:2px solid #ccc;padding-bottom:6px;word-break:break-all;">',
-      carId,'</div></div>',
-
-      // 車種
-      '<div style="margin-bottom:16px;">',
-      '<div style="font-size:20px;color:#888;margin-bottom:4px;">車種 / Type</div>',
-      '<div style="font-size:38px;font-weight:900;color:#222;',
-      'border-bottom:2px solid #ccc;padding-bottom:6px;">',
-      cType,'</div></div>',
-
-      // 違規法條
-      '<div style="margin-bottom:16px;">',
-      '<div style="font-size:20px;color:#888;margin-bottom:4px;">違規法條 / Violation</div>',
-      '<div style="font-size:30px;font-weight:700;color:#222;',
-      'border-bottom:2px solid #ccc;padding-bottom:6px;word-break:break-all;">',
-      lawDisplay,'</div></div>',
-
-      // 移置日期
-      '<div style="margin-bottom:0;">',
-      '<div style="font-size:20px;color:#888;margin-bottom:4px;">移置日期 / Date</div>',
-      '<div style="font-size:36px;font-weight:900;color:#222;',
-      'border-bottom:2px solid #ccc;padding-bottom:6px;">',
-      moveDate,'</div></div>',
-
-      // 車號大字裝飾（flex:1 撐滿中間空白）
-      '<div style="flex:1;display:flex;align-items:center;justify-content:center;">',
-      '<div style="font-size:90px;font-weight:900;color:#e8eef7;letter-spacing:6px;',
-      'word-break:break-all;text-align:center;line-height:1.1;">',carId,'</div></div>',
-
-      // 底部郵寄欄
-      '<div style="border-top:2px dashed #999;padding-top:14px;">',
-      '<div style="font-size:19px;color:#666;margin-bottom:8px;">已郵寄資料予拖吊場日期</div>',
-      '<div style="font-size:26px;font-weight:700;color:#333;letter-spacing:4px;">',
-      '____年 ____月 ____日</div></div>',
-
-      '</div>'
-    ].join('');
-  }
-
-  // ── 組完整 A5 容器 ──
-  var container = document.createElement('div');
-  container.style.cssText = [
-    'position:fixed;top:-99999px;left:-99999px;',
-    'width:'+PX_W+'px;height:'+PX_H+'px;',
-    'background:#fff;display:flex;flex-direction:row;',
-    'overflow:hidden;'
-  ].join('');
-
-  container.innerHTML =
-    colHTML(carId, cType, lawDisplay, moveDate) +
-    // 中間虛線
-    '<div style="width:4px;height:'+PX_H+'px;flex-shrink:0;'+
-    'background:repeating-linear-gradient(to bottom,#666 0,#666 10px,transparent 10px,transparent 20px);"></div>' +
-    colHTML(carId, cType, lawDisplay, moveDate);
-
-  document.body.appendChild(container);
-
-  html2canvas(container, {
-    scale: 1,
-    useCORS: true,
-    backgroundColor: '#ffffff',
-    width:  PX_W,
-    height: PX_H,
-    logging: false
-  }).then(function(canvas){
-    document.body.removeChild(container);
-
-    var jsPDF = (window.jspdf && window.jspdf.jsPDF) || jspdf.jsPDF;
-    var doc   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a5' });
-    var imgData = canvas.toDataURL('image/jpeg', 0.95);
-    doc.addImage(imgData, 'JPEG', 0, 0, 148, 210);
-
-    var blob = doc.output('blob');
-    var url  = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
-  }).catch(function(err){
-    document.body.removeChild(container);
-    alert('❌ PDF 產生失敗：' + err.message);
-  });
+  var pw = window.open('','_blank');
+  pw.document.write(
+    '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>'+css+'</style></head><body>'
+    +'<div class="page">'
+    + block
+    +'<svg width="2mm" height="210mm" style="flex-shrink:0;overflow:visible;">'
+    +'<line x1="1" y1="0" x2="1" y2="793" stroke="#333" stroke-width="2" stroke-dasharray="8,6" vector-effect="non-scaling-stroke"/>'
+    +'</svg>'
+    + block
+    +'</div>'
+    +'<script>window.onload=function(){window.print();setTimeout(function(){window.close();},600);}<\/script>'
+    +'</body></html>'
+  );
+  pw.document.close();
 }
 </script>
 </body>

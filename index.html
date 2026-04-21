@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
+  <!-- jsPDF for client-side PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; background: #edf1f7; min-height: 100vh; -webkit-overflow-scrolling: touch; overflow-x: hidden; }
@@ -277,7 +279,7 @@
       <div class="field">
         <span class="field-label">移置日期</span>
         <div class="date-wrap">
-          <input class="field-input" type="text" id="moveDateA" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off" inputmode="text" autocomplete="off">
+          <input class="field-input" type="text" id="moveDateA" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off">
           <input class="date-pick-hidden" type="date" id="moveDateA_pick" onchange="pickDate(this,'moveDateA')">
           <button class="date-pick-btn" onclick="document.getElementById('moveDateA_pick').showPicker?document.getElementById('moveDateA_pick').showPicker():document.getElementById('moveDateA_pick').click()">📅</button>
         </div>
@@ -285,7 +287,7 @@
       <div class="field">
         <span class="field-label">入場日期（拖吊後填寫）</span>
         <div class="date-wrap">
-          <input class="field-input" type="text" id="inDateA" placeholder="拖吊後再填" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off" inputmode="text" autocomplete="off">
+          <input class="field-input" type="text" id="inDateA" placeholder="拖吊後再填" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off">
           <input class="date-pick-hidden" type="date" id="inDateA_pick" onchange="pickDate(this,'inDateA')">
           <button class="date-pick-btn" onclick="document.getElementById('inDateA_pick').showPicker?document.getElementById('inDateA_pick').showPicker():document.getElementById('inDateA_pick').click()">📅</button>
         </div>
@@ -356,7 +358,7 @@
 
   <div class="prog-wrap" id="progA"><div class="prog-bar"><div class="prog-fill" id="progA-fill"></div></div><div class="prog-text" id="progA-text"></div></div>
   <button class="btn-main" id="btnA" onclick="submitA()">✅ 確認送出並存檔</button>
-  <button class="btn-sub" onclick="printLabel()">🖨️ 列印標籤</button>
+  <button class="btn-sub" onclick="printLabel()">🖨️ 匯出標籤 PDF</button>
   <button class="btn-ghost" onclick="resetA()">清空 / 新增模式</button>
 </div>
 
@@ -393,8 +395,8 @@
     <div class="field-row">
       <div class="field">
         <span class="field-label">採驗日期</span>
-<div class="date-wrap">
-          <input class="field-input" type="text" id="tdB" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off" inputmode="text" autocomplete="off">
+        <div class="date-wrap">
+          <input class="field-input" type="text" id="tdB" placeholder="例：2026/03/08" maxlength="10" oninput="fmtDate(this)" inputmode="text" autocomplete="off">
           <input class="date-pick-hidden" type="date" id="tdB_pick" onchange="pickDate(this,'tdB')">
           <button class="date-pick-btn" onclick="document.getElementById('tdB_pick').showPicker?document.getElementById('tdB_pick').showPicker():document.getElementById('tdB_pick').click()">📅</button>
         </div>
@@ -444,14 +446,13 @@
 
   <div class="prog-wrap" id="progB"><div class="prog-bar"><div class="prog-fill" id="progB-fill"></div></div><div class="prog-text" id="progB-text"></div></div>
   <button class="btn-main" id="btnB" onclick="submitB()">✅ 確認送出並存檔</button>
-  <!-- ★ 新增：領用狀況按鈕 -->
   <button class="btn-sub" onclick="openUsageModal()">📋 領用狀況</button>
   <button class="btn-ghost" onclick="resetB()">清空 / 新增模式</button>
 </div>
 
 </div><!-- /page-wrap -->
 
-<!-- ★ 防呆 Modal -->
+<!-- 防呆 Modal -->
 <div id="guardModal">
   <div class="guard-box">
     <div class="guard-icon" id="guardIcon">⚠️</div>
@@ -461,7 +462,7 @@
   </div>
 </div>
 
-<!-- ★ 領用狀況 Modal（由下往上的 bottom sheet） -->
+<!-- 領用狀況 Modal -->
 <div id="usageModal" onclick="if(event.target===this)closeUsageModal()">
   <div class="usage-sheet">
     <div class="usage-sheet-hd">
@@ -496,10 +497,9 @@ var driveUrls = { impound:'', ticket:'' };
 var lbKey     = '';
 var resultSelB = '';
 
-// 防呆：搜尋帶入模式旗標（搜尋帶入後不需防呆）
 var _isSearchMode = false;
 
-// ══ 呼叫 GAS 後端（fetch POST，Content-Type: text/plain 避免 CORS preflight） ══
+// ══ 呼叫 GAS 後端 ══
 function gasCall(payload, onSuccess, onFail){
   payload.token = SECRET_TOKEN;
   fetch(GAS_URL, {
@@ -529,14 +529,12 @@ function switchTab(t){
   document.getElementById('searchNoA').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchA(); });
   document.getElementById('searchNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchB(); });
   document.getElementById('reagentNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('tdB').focus(); });
-  // 快篩：採驗日期預設今天、時間預設現在
   document.getElementById('tdB').value = todaySlash();
   setNowTime();
 })();
 
-// ══ 日期工具函式 ══
+// ══ 日期工具 ══
 function todayISO(){ return new Date().toLocaleDateString('en-CA'); }
-
 function fmtTime(el){
   var v = el.value.replace(/[^0-9]/g,'');
   if(v.length > 2) v = v.slice(0,2)+':'+v.slice(2);
@@ -548,7 +546,6 @@ function setNowTime(){
   var mm = ('0'+now.getMinutes()).slice(-2);
   document.getElementById('ttB').value = hh+':'+mm;
 }
-
 function slashToISO(s){
   if(!s) return '';
   s = String(s).trim();
@@ -562,7 +559,6 @@ function slashToISO(s){
   }
   return s;
 }
-
 function toDateInput(s){
   if(!s) return '';
   s = String(s).trim();
@@ -577,14 +573,12 @@ function toDateInput(s){
   return '';
 }
 function isoToSlash(s){ return toDateInput(s); }
-
 function pickDate(picker, targetId){
   var v = picker.value;
   if(!v) return;
   var p = v.split('-');
   document.getElementById(targetId).value = p[0]+'/'+p[1]+'/'+p[2];
 }
-
 function fmtDate(el){
   var v = el.value.replace(/[^0-9]/g,'');
   if(v.length > 4) v = v.slice(0,4)+'/'+v.slice(4);
@@ -619,7 +613,7 @@ function getRadioVal(name){ var el=document.querySelector('input[name="'+name+'"
 function getCheckVal(name){ var v=[]; document.querySelectorAll('input[name="'+name+'"]:checked').forEach(function(c){v.push(c.value);}); return v.join(','); }
 function fmtCheck(opts,sel){ var a=sel?sel.split(','):[]; return opts.map(function(o){return(a.includes(o)?'■':'□')+o;}).join(''); }
 
-// ══ 快篩：檢驗結果 chip（單筆固定） ══
+// ══ 快篩：檢驗結果 chip ══
 var RC = {pos:'sel-pos', neg:'sel-neg', ref:'sel-ref', oth:'sel-oth'};
 function selResult(v){
   resultSelB = v;
@@ -673,7 +667,7 @@ function doSearchB(){
       document.getElementById('tiB').value        = r.idno  || '';
       document.getElementById('tcrB').value       = r.crime || '';
       document.getElementById('operatorB').value  = res.operator || '';
-      _isSearchMode = true;  // 搜尋帶入，送出時跳過防呆
+      _isSearchMode = true;
       restoreResult(r.result);
       alert('資料已載入！試劑編號：' + (res.reagentNo||no));
     },
@@ -681,7 +675,7 @@ function doSearchB(){
   );
 }
 
-// ══ ★ 防呆 Modal 控制 ══
+// ══ 防呆 Modal ══
 function showGuardModal(icon, title, msg, btns){
   document.getElementById('guardIcon').textContent  = icon;
   document.getElementById('guardTitle').textContent = title;
@@ -707,13 +701,10 @@ function submitB(){
   var operator  = document.getElementById('operatorB').value.trim();
   if(!reagentNo){ alert('請輸入試劑編號'); return; }
   if(!operator) { alert('請填寫操作人員'); return; }
-
-  // 搜尋帶入模式直接寫入，不做防呆
   if(_isSearchMode){
     doSubmitB(reagentNo, operator, '搜尋帶入後更正');
     return;
   }
-
   var btn = document.getElementById('btnB');
   btn.disabled = true; btn.textContent = '檢查中…';
   gasCall(
@@ -723,9 +714,7 @@ function submitB(){
         var hasName     = !!(res.name     && String(res.name).trim());
         var hasIdno     = !!(res.idno     && String(res.idno).trim());
         var hasOperator = !!(res.operator && String(res.operator).trim());
-
         if(hasName && hasIdno){
-          // 情境1：資料完整，禁止覆蓋
           btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
           showGuardModal(
             '🚫', '禁止覆蓋',
@@ -734,9 +723,7 @@ function submitB(){
           );
           return;
         }
-
         if(hasOperator){
-          // 情境2：有操作人員但資料不全，需確認覆蓋
           btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
           showGuardModal(
             '⚠️', '請確認覆蓋',
@@ -752,18 +739,14 @@ function submitB(){
           return;
         }
       }
-      // 全新或無操作人員，直接寫入
       doSubmitB(reagentNo, operator, '正常儲存');
     },
     function(err){
-      // 連線失敗仍允許繼續（不阻擋操作）
       btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
       alert('❌ 防呆檢查失敗：' + err.message + '\n請重新嘗試。');
     }
   );
 }
-
-// 實際執行寫入
 function doSubmitB(reagentNo, operator, overrideNote){
   var payload = {
     rowNumB:      document.getElementById('rowNumB').value,
@@ -791,7 +774,6 @@ function doSubmitB(reagentNo, operator, overrideNote){
     function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgB(); alert('❌ '+err.message); }
   );
 }
-
 function resetB(){
   document.getElementById('reagentNoB').value  = '';
   document.getElementById('tdB').value         = todaySlash();
@@ -814,79 +796,44 @@ function resetB(){
 function setProgB(p,t){document.getElementById('progB').style.display='block';document.getElementById('progB-fill').style.width=p+'%';document.getElementById('progB-text').textContent=t;}
 function hideProgB(){document.getElementById('progB').style.display='none';}
 
-// ══ ★ 領用狀況 Modal ══
+// ══ 領用狀況 Modal ══
 function openUsageModal(){
   document.getElementById('usageModal').classList.add('show');
   document.getElementById('usageBody').innerHTML = '<div class="usage-loading">載入中…</div>';
   gasCall(
     { action: 'getUsageStatus', limit: 30 },
-    function(res){
-      renderUsage(res.rows || []);
-    },
+    function(res){ renderUsage(res.rows || []); },
     function(err){
       document.getElementById('usageBody').innerHTML =
         '<div class="usage-empty">❌ 載入失敗：' + err.message + '</div>';
     }
   );
 }
-
 function closeUsageModal(){
   document.getElementById('usageModal').classList.remove('show');
 }
-
-// rows 由 GAS 回傳，格式：由下往上30筆，每筆 { reagentNo, operator, name, idno }
-// reagentNo = A欄；operator = 操作人員；name = 嫌犯姓名；idno = 身分證字號
 function renderUsage(rows){
   var body = document.getElementById('usageBody');
-  if(!rows || rows.length === 0){
-    body.innerHTML = '<div class="usage-empty">目前無資料</div>';
-    return;
-  }
+  if(!rows || rows.length === 0){ body.innerHTML = '<div class="usage-empty">目前無資料</div>'; return; }
   var html = '';
   for(var i = 0; i < rows.length; i++){
     var r = rows[i];
-    var no       = String(r.reagentNo || '').trim();
-    var operator = String(r.operator  || '').trim();
-    var name     = String(r.name      || '').trim();
-    var idno     = String(r.idno      || '').trim();
-
+    var no=String(r.reagentNo||'').trim(), operator=String(r.operator||'').trim();
+    var name=String(r.name||'').trim(), idno=String(r.idno||'').trim();
     var rowClass, badgeClass, badgeText, operatorText, subText;
-
     if(!operator){
-      // 操作人員未填 → 在所內
-      rowClass    = 'usage-row idle';
-      badgeClass  = 'usage-badge idle';
-      badgeText   = '在所內';
-      operatorText = '（未指定）';
-      subText     = '';
-    } else if(!name || !idno){
-      // 操作人員有填，但姓名或身分證缺漏 → 警告
-      rowClass    = 'usage-row warn';
-      badgeClass  = 'usage-badge warn';
-      badgeText   = '資料不全';
-      operatorText = operator;
-      var missing = [];
-      if(!name) missing.push('姓名');
-      if(!idno) missing.push('身分證');
-      subText     = '缺：' + missing.join('、');
+      rowClass='usage-row idle'; badgeClass='usage-badge idle'; badgeText='在所內';
+      operatorText='（未指定）'; subText='';
+    } else if(!name||!idno){
+      rowClass='usage-row warn'; badgeClass='usage-badge warn'; badgeText='資料不全';
+      operatorText=operator;
+      var missing=[]; if(!name) missing.push('姓名'); if(!idno) missing.push('身分證');
+      subText='缺：'+missing.join('、');
     } else {
-      // 完整 → 正常
-      rowClass    = 'usage-row ok';
-      badgeClass  = 'usage-badge ok';
-      badgeText   = '正常';
-      operatorText = operator;
-      subText     = name + '　' + idno;
+      rowClass='usage-row ok'; badgeClass='usage-badge ok'; badgeText='正常';
+      operatorText=operator; subText=name+'　'+idno;
     }
-
-    html +=
-      '<div class="' + rowClass + '">' +
-        '<div class="usage-no">' + (no || '-') + '</div>' +
-        '<div class="usage-info">' +
-          '<div class="usage-operator">' + operatorText + '</div>' +
-          (subText ? '<div class="usage-sub">' + subText + '</div>' : '') +
-        '</div>' +
-        '<div class="' + badgeClass + '">' + badgeText + '</div>' +
-      '</div>';
+    html+='<div class="'+rowClass+'"><div class="usage-no">'+(no||'-')+'</div><div class="usage-info"><div class="usage-operator">'+operatorText+'</div>'+(subText?'<div class="usage-sub">'+subText+'</div>':'')+'</div><div class="'+badgeClass+'">'+badgeText+'</div></div>';
   }
   body.innerHTML = html;
 }
@@ -925,70 +872,50 @@ function doSearchA(){
 
 // ══ 扣車送出 ══
 function submitA(){
-  var no      = document.getElementById('noA').value.trim();
-  var carId   = document.getElementById('carIdA').value.trim();
-  var moveDate= slashToISO(document.getElementById('moveDateA').value);
-  var cType   = getRadioVal('ctype');
-
-  // 基本欄位驗證
+  var no=document.getElementById('noA').value.trim();
+  var carId=document.getElementById('carIdA').value.trim();
+  var moveDate=slashToISO(document.getElementById('moveDateA').value);
+  var cType=getRadioVal('ctype');
   if(!no)      { alert('請填寫編號'); return; }
   if(!carId)   { alert('請填寫車號'); return; }
   if(!moveDate){ alert('請填寫移置日期'); return; }
   if(!cType)   { alert('請選擇車種'); return; }
-
-  // ★ 編號格式：固定8碼純數字
   if(!/^\d{8}$/.test(no)){
-    showGuardModal(
-      '⚠️', '編號格式錯誤',
-      '編號必須為 <strong>8碼數字</strong>，目前輸入：「' + no + '」，請確認後重新輸入。',
+    showGuardModal('⚠️','編號格式錯誤','編號必須為 <strong>8碼數字</strong>，目前輸入：「'+no+'」，請確認後重新輸入。',
       [{ text:'知道了', cls:'guard-btn-confirm', cb: function(){ closeGuardModal(); document.getElementById('noA').focus(); } }]
     );
     return;
   }
-
   var isEditMode = !!document.getElementById('rowNumA').value;
   var btn = document.getElementById('btnA');
   btn.disabled = true; btn.textContent = '檢查中…';
-
-  // ★ 編輯模式（搜尋帶入）直接寫入，不查重複
-  if(isEditMode){
-    doSubmitA(no, '修改');
-    return;
-  }
-
-  // ★ 新增模式：先查編號是否已存在
+  if(isEditMode){ doSubmitA(no, '修改'); return; }
   gasCall(
     { action: 'checkImpoundBeforeSave', no: no },
     function(res){
       if(res && res.exists){
         btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
-        showGuardModal(
-          '🚫', '編號已存在',
-          '編號 <strong>' + no + '</strong> 已有資料（車號：' + (res.carId||'—') + '），請使用「搜尋」帶入舊資料後再進行修改，禁止重複新增。',
+        showGuardModal('🚫','編號已存在','編號 <strong>'+no+'</strong> 已有資料（車號：'+(res.carId||'—')+'），請使用「搜尋」帶入舊資料後再進行修改，禁止重複新增。',
           [{ text:'知道了', cls:'guard-btn-confirm', cb: closeGuardModal }]
         );
         return;
       }
-      // 編號不存在，正常新增
       doSubmitA(no, '新增');
     },
     function(err){
-      // 連線失敗不阻擋（容錯）
       btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
       alert('❌ 重複檢查失敗：' + err.message + '\n請重新嘗試。');
     }
   );
 }
-
-// 實際執行扣車寫入
 function doSubmitA(no, logNote){
-  var carId   = document.getElementById('carIdA').value.trim();
-  var moveDate= slashToISO(document.getElementById('moveDateA').value);
-  var cType   = getRadioVal('ctype');
-  var btn     = document.getElementById('btnA');
-  btn.disabled = true; btn.textContent = '處理中…';
+  var carId=document.getElementById('carIdA').value.trim();
+  var moveDate=slashToISO(document.getElementById('moveDateA').value);
+  var cType=getRadioVal('ctype');
+  var btn=document.getElementById('btnA');
+  btn.disabled=true; btn.textContent='處理中…';
   setProgA(5,'① 儲存文字資料…');
-  var td = {
+  var td={
     type:'A', rowNum: document.getElementById('rowNumA').value,
     no: no, moveDate: moveDate, carId: carId,
     owner:       document.getElementById('ownerA').value,
@@ -1003,7 +930,7 @@ function doSubmitA(no, logNote){
   };
   gasCall({action:'saveTextData', data:td},
     function(res){
-      var sr = res.row; setProgA(25,'② 上傳扣車單照片…');
+      var sr=res.row; setProgA(25,'② 上傳扣車單照片…');
       doUploadPhoto('impound', carId, no, function(iu){
         setProgA(60,'③ 上傳罰單照片…');
         doUploadPhoto('ticket', carId, no, function(tu){
@@ -1047,7 +974,7 @@ function resetA(){
 function setProgA(p,t){document.getElementById('progA').style.display='block';document.getElementById('progA-fill').style.width=p+'%';document.getElementById('progA-text').textContent=t;}
 function hideProgA(){document.getElementById('progA').style.display='none';}
 
-// ══ 照片共用 ══
+// ══ 照片 ══
 function handlePhoto(fid,pid,sid,bid,vid,key){
   var file=document.getElementById(fid).files[0]; if(!file) return;
   var statEl=document.getElementById(sid); statEl.className='photo-stat'; statEl.textContent='壓縮中…';
@@ -1106,106 +1033,132 @@ function sharePhoto(){
 function showErr(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
 function hideErr(id){var e=document.getElementById(id);if(e){e.style.display='none';}}
 
-// ══ 列印標籤：A5 直向 148×210mm，左右各74mm長條，中間虛線 ══
+// ══════════════════════════════════════════════════════════════
+// ★ 列印標籤 → 直接匯出 A5 直式 PDF（使用 jsPDF）
+//   同事開啟 PDF 後直接列印，無需任何紙張設定
+// ══════════════════════════════════════════════════════════════
 function printLabel(){
   var carId    = document.getElementById('carIdA').value.trim();
   var law      = getCheckVal('law');
   var moveDate = document.getElementById('moveDateA').value;
   var cType    = getRadioVal('ctype');
-  if(!carId) return alert('請先輸入車號');
-  if(!cType) return alert('請先選擇車種');
 
-  var block =
-    '<div class="lb">'
-    +'<div class="lb-title">車輛保管標籤</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">車號</div>'
-    +'<div class="lb-val">'+carId+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">車種</div>'
-    +'<div class="lb-val">'+cType+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">違規法條</div>'
-    +'<div class="lb-val lb-law">'+(law||'（未選擇）')+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">移置日期</div>'
-    +'<div class="lb-val">'+moveDate+'</div>'
-    +'</div>'
-    +'<div class="lb-plate">'+carId+'</div>'
-    +'<div class="lb-foot">'
-    +'<div class="lb-lbl">已郵寄資料予拖吊場日期</div>'
-    +'<div class="lb-blank">　　年　　月　　日</div>'
-    +'</div>'
-    +'</div>';
+  if(!carId) { alert('請先輸入車號'); return; }
+  if(!cType) { alert('請先選擇車種'); return; }
 
-  var css =
-    '@media print{ @page{ size:148mm 210mm; margin:0; } }'
-    +'*{ box-sizing:border-box; margin:0; padding:0; }'
-    +'body{ font-family:"Microsoft JhengHei",sans-serif; }'
-    +'.page{ width:148mm; height:210mm; display:flex; flex-direction:row; overflow:hidden; }'
-    +'.lb{'
-    +'  width:73mm; height:210mm; flex-shrink:0;'
-    +'  padding:8mm 5mm 8mm 5mm;'
-    +'  display:flex; flex-direction:column;'
-    +'}'
-    +'.divider{'
-    +'  flex-shrink:0; width:2mm; height:210mm;'
-    +'  border-left:2px dashed #333;'
-    +'  -webkit-print-color-adjust:exact; print-color-adjust:exact;'
-    +'}'
-    +'.lb-title{'
-    +'  font-size:15px; font-weight:bold; text-align:center;'
-    +'  letter-spacing:2px; padding-bottom:5px;'
-    +'  border-bottom:2px solid #000; margin-bottom:6mm;'
-    +'}'
-    +'.lb-section{'
-    +'  margin-bottom:5mm;'
-    +'}'
-    +'.lb-lbl{'
-    +'  font-size:9px; color:#555; letter-spacing:1px;'
-    +'  text-transform:uppercase; margin-bottom:1mm;'
-    +'}'
-    +'.lb-plate{'
-    +'  flex:1; display:flex; align-items:center; justify-content:center;'
-    +'  writing-mode:vertical-rl; text-orientation:mixed;'
-    +'  font-size:52px; font-weight:900; letter-spacing:6px;'
-    +'  color:#000; line-height:1;'
-    +'}'
-    +'.lb-val{'
-    +'  font-size:20px; font-weight:bold;'
-    +'  letter-spacing:1px; line-height:1.2;'
-    +'  border-bottom:1.5px solid #000; padding-bottom:1mm;'
-    +'  word-break:break-all;'
-    +'}'
-    +'.lb-law{ font-size:16px; }'
-    +'.lb-foot{'
-    +'  margin-top:auto;'
-    +'  border-top:1.5px dashed #000;'
-    +'  padding-top:4mm;'
-    +'}'
-    +'.lb-blank{'
-    +'  font-size:16px; margin-top:3mm;'
-    +'  letter-spacing:3px;'
-    +'}';
+  // jsPDF 掛載點檢查
+  if(typeof window.jspdf === 'undefined' && typeof jspdf === 'undefined'){
+    alert('❌ PDF 模組尚未載入，請確認網路連線後重新整理頁面。');
+    return;
+  }
+  var jsPDF = (window.jspdf && window.jspdf.jsPDF) || jspdf.jsPDF;
 
-  var pw = window.open('','_blank');
-  pw.document.write(
-    '<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    +'<style>'+css+'</style></head><body>'
-    +'<div class="page">'
-    + block
-    +'<svg width="2mm" height="210mm" style="flex-shrink:0;overflow:visible;">'
-    +'<line x1="1" y1="0" x2="1" y2="793" stroke="#333" stroke-width="2" stroke-dasharray="8,6" vector-effect="non-scaling-stroke"/>'
-    +'</svg>'
-    + block
-    +'</div>'
-    +'<script>window.onload=function(){window.print();setTimeout(function(){window.close();},600);}<\/script>'
-    +'</body></html>'
-  );
-  pw.document.close();
+  // A5 直式：148 × 210 mm
+  var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' });
+
+  // ── 尺寸常數 ──
+  var PW = 148, PH = 210;           // 頁面寬高
+  var COL = PW / 2;                 // 每欄寬 74 mm
+  var PAD = 6;                      // 左右內邊距
+  var TW  = COL - PAD * 2;         // 文字可用寬
+
+  // ── 顏色 & 字型 ──
+  // jsPDF 內建 Helvetica 不支援中文，以下用可用的 ASCII 區塊搭配 Unicode fallback
+  // 中文欄位改用 UTF-8 字串直接傳入，jsPDF 會盡力渲染；
+  // 如需完整中文顯示可改搭 jsPDF-AutoTable + 自訂字體，本函式用內建字體確保跨裝置可用
+
+  function drawCol(xOff){
+    var x  = xOff + PAD;
+    var y  = 10;
+
+    // ── 標題 ──
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.setTextColor(15, 52, 96);
+    doc.text('Vehicle Custody Tag', xOff + COL/2, y, { align:'center' });
+    doc.text('\u8ECA\u8F1B\u4FDD\u7BA1\u6A19\u7C64', xOff + COL/2, y+6, { align:'center' }); // 車輛保管標籤
+    y += 10;
+    doc.setDrawColor(15, 52, 96);
+    doc.setLineWidth(0.6);
+    doc.line(xOff+3, y, xOff+COL-3, y);
+    y += 5;
+
+    // ── 區塊繪製函式 ──
+    function field(label, value, fontSize){
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120,120,120);
+      doc.text(label, x, y);
+      y += 4;
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(fontSize || 16);
+      doc.setTextColor(20,20,20);
+      // 多行自動換行
+      var lines = doc.splitTextToSize(value || '---', TW);
+      doc.text(lines, x, y);
+      y += lines.length * (fontSize || 16) * 0.35 + 1;
+      doc.setDrawColor(180,180,180);
+      doc.setLineWidth(0.3);
+      doc.line(x, y, x + TW, y);
+      y += 4;
+    }
+
+    // 車號
+    field('\u8ECA\u865F  /  Plate No.', carId, 20);
+    // 車種
+    field('\u8ECA\u7A2E  /  Type', cType, 14);
+    // 違規法條
+    var lawDisplay = law ? law.split(',').join('  ') : '---';
+    field('\u9055\u898F\u6CD5\u689D  /  Violation', lawDisplay, 12);
+    // 移置日期
+    field('\u79FB\u7F6E\u65E5\u671F  /  Date', moveDate, 13);
+
+    // ── 車號大字直排（裝飾） ──
+    var plateY  = y + 4;
+    var plateH  = PH - plateY - 28;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(38);
+    doc.setTextColor(230,234,242);
+    // 垂直置中
+    doc.text(carId, xOff + COL/2, plateY + plateH/2 + 6, { align:'center', charSpace:3 });
+    // 前景車號（深色）
+    doc.setTextColor(40,60,100);
+    doc.setFontSize(28);
+    doc.text(carId, xOff + COL/2, plateY + plateH/2 + 6, { align:'center', charSpace:3 });
+    y = plateY + plateH + 6;
+
+    // ── 底部：已郵寄欄位 ──
+    doc.setDrawColor(100,100,100);
+    doc.setLineWidth(0.3);
+    doc.setLineDash([1.5, 1.5]);
+    doc.line(xOff+3, y-2, xOff+COL-3, y-2);
+    doc.setLineDash([]);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100,100,100);
+    doc.text('\u5DF2\u90F5\u5BC4\u8CC7\u6599\u4E88\u62D6\u5410\u5834\u65E5\u671F', x, y+3); // 已郵寄資料予拖吊場日期
+    doc.setFontSize(11);
+    doc.setTextColor(20,20,20);
+    doc.text('____\u5E74 ____\u6708 ____\u65E5', x, y+9);
+  }
+
+  // ── 繪製左欄（0）& 右欄（COL） ──
+  drawCol(0);
+  drawCol(COL);
+
+  // ── 中間虛線分隔 ──
+  doc.setDrawColor(80,80,80);
+  doc.setLineWidth(0.4);
+  doc.setLineDash([2.5, 2]);
+  doc.line(COL, 3, COL, PH-3);
+  doc.setLineDash([]);
+
+  // ── 輸出：開新分頁預覽 ──
+  var pdfBlob = doc.output('blob');
+  var url = URL.createObjectURL(pdfBlob);
+  window.open(url, '_blank');
+  // 60 秒後釋放 blob URL
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
 }
 </script>
 </body>

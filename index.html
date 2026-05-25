@@ -879,8 +879,8 @@ function submitA(){
   if(!carId)   { alert('請填寫車號'); return; }
   if(!moveDate){ alert('請填寫移置日期'); return; }
   if(!cType)   { alert('請選擇車種'); return; }
-  if(!/^\d{8}$/.test(no)){
-    showGuardModal('⚠️','編號格式錯誤','編號必須為 <strong>8碼數字</strong>，目前輸入：「'+no+'」，請確認後重新輸入。',
+  if(!/^\d{8,9}$/.test(no)){
+    showGuardModal('⚠️','編號格式錯誤','編號必須為 <strong>8～9碼數字</strong>，目前輸入：「'+no+'」，請確認後重新輸入。',
       [{ text:'知道了', cls:'guard-btn-confirm', cb: function(){ closeGuardModal(); document.getElementById('noA').focus(); } }]
     );
     return;

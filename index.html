@@ -39,6 +39,16 @@
     .card-hd { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: bold; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1.5px solid #f0f2f7; }
     .card-hd-icon { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg,#0f3460,#1a5276); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
 
+    /* ★ 新增：紙本列號 badge */
+    .row-badge {
+      display: none; margin-left: auto;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: #fff; font-size: 13px; font-weight: bold;
+      padding: 4px 12px; border-radius: 20px;
+      letter-spacing: 0.5px; white-space: nowrap;
+    }
+    .row-badge.show { display: inline-flex; align-items: center; gap: 4px; }
+
     .field { margin-bottom: 14px; }
     .field:last-child { margin-bottom: 0; }
     .field-label { font-size: 12px; font-weight: bold; color: #8898aa; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 6px; }
@@ -60,7 +70,17 @@
     .other-text { display: none; width: 100%; margin-top: 8px; padding: 9px 13px; border: 1.5px solid #6f42c1; border-radius: 9px; font-size: 14px; font-family: inherit; }
     .other-text.show { display: block; }
 
+    /* ★ 修改：搜尋卡片支援兩種搜尋模式 */
     .search-card { background: linear-gradient(135deg,#e8f4fd 0%,#ede8fd 100%); border: 1.5px solid #c5d8f5; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+    .search-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+    .search-tab-btn {
+      flex: 1; padding: 7px 0; border: 1.5px solid #c5d8f5; border-radius: 8px;
+      background: rgba(255,255,255,0.6); color: #555; font-size: 13px; font-family: inherit;
+      font-weight: bold; cursor: pointer; text-align: center;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .search-tab-btn.active { background: #0f3460; color: #fff; border-color: #0f3460; }
     .search-row { display: flex; gap: 8px; margin-top: 8px; }
     .search-row input { flex: 1; padding: 10px 13px; border: 1.5px solid #c5d8f5; border-radius: 9px; font-size: 15px; font-family: inherit; background: #fff; }
     .search-row input:focus { outline: none; border-color: #0f3460; }
@@ -68,6 +88,17 @@
     .search-btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .edit-badge { display: none; text-align: center; background: #fff3cd; color: #856404; padding: 9px 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #ffd166; font-weight: bold; font-size: 14px; }
     .error-msg { color: #721c24; background: #f8d7da; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border: 1px solid #f5c6cb; display: none; font-size: 13px; }
+
+    /* ★ 新增：車號搜尋多筆結果選單 */
+    .carid-results { margin-top: 10px; display: none; }
+    .carid-result-item {
+      padding: 10px 14px; background: #fff; border: 1.5px solid #c5d8f5;
+      border-radius: 9px; margin-bottom: 6px; cursor: pointer; font-size: 14px;
+      transition: background 0.15s;
+    }
+    .carid-result-item:hover { background: #eef6ff; border-color: #0f3460; }
+    .carid-result-no { font-weight: bold; color: #0f3460; }
+    .carid-result-sub { font-size: 12px; color: #888; margin-top: 2px; }
 
     /* 試劑編號大字輸入 */
     .reagent-no-input {
@@ -224,6 +255,23 @@
     .usage-badge.idle { background: #6f42c1; color: #fff; }
     .usage-empty { text-align: center; color: #aaa; padding: 30px 0; font-size: 15px; }
     .usage-loading { text-align: center; color: #0f3460; padding: 30px 0; font-size: 15px; }
+
+    /* ★ 新增：送出後列號彈窗特殊樣式 */
+    .row-confirm-box {
+      background: linear-gradient(135deg, #0f3460, #1a5276);
+      color: #fff; border-radius: 18px; width: 100%; max-width: 400px;
+      padding: 28px 22px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .row-confirm-icon { font-size: 42px; margin-bottom: 10px; }
+    .row-confirm-title { font-size: 16px; font-weight: bold; color: #b0d4f1; margin-bottom: 6px; }
+    .row-confirm-num { font-size: 64px; font-weight: 900; color: #fff; line-height: 1; margin: 8px 0; letter-spacing: -2px; }
+    .row-confirm-sub { font-size: 14px; color: #8ab4d4; margin-bottom: 20px; }
+    .row-confirm-btn {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      background: rgba(255,255,255,0.2); color: #fff; font-size: 15px; font-family: inherit;
+      font-weight: bold; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.3);
+    }
   </style>
 </head>
 <body>
@@ -247,19 +295,41 @@
 <!-- ═══════════ PANEL A：扣車管制 ═══════════ -->
 <div class="panel active" id="panel-A">
 
+  <!-- ★ 修改：搜尋區，新增車號搜尋切換 -->
   <div class="search-card">
-    <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋修改（B 欄編號）</div>
-    <div class="search-row">
-      <input type="text" id="searchNoA" placeholder="請輸入編號" inputmode="numeric" autocomplete="off">
-      <button class="search-btn" id="searchBtnA" onclick="doSearchA()">搜尋</button>
+    <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋修改</div>
+    <div class="search-tabs" style="margin-top:8px;">
+      <button class="search-tab-btn active" id="stab-no" onclick="switchSearchTab('no')">📋 扣車單號</button>
+      <button class="search-tab-btn" id="stab-car" onclick="switchSearchTab('car')">🚗 車號搜尋</button>
+    </div>
+    <!-- 扣車單號搜尋 -->
+    <div id="search-panel-no">
+      <div class="search-row">
+        <input type="text" id="searchNoA" placeholder="請輸入 B 欄編號" inputmode="numeric" autocomplete="off">
+        <button class="search-btn" id="searchBtnA" onclick="doSearchA()">搜尋</button>
+      </div>
+    </div>
+    <!-- 車號搜尋 -->
+    <div id="search-panel-car" style="display:none;">
+      <div class="search-row">
+        <input type="text" id="searchCarIdA" placeholder="例：ABC-1234" oninput="this.value=this.value.toUpperCase()" autocomplete="off" autocapitalize="characters">
+        <button class="search-btn" id="searchBtnCar" onclick="doSearchByCar()">搜尋</button>
+      </div>
+      <!-- 車號搜尋多筆結果 -->
+      <div class="carid-results" id="carIdResults"></div>
     </div>
     <div id="searchErrorA" class="error-msg"></div>
   </div>
+
   <div class="edit-badge" id="editMsgA">⚠️ 修改模式 — 資料已載入，修改後送出即覆蓋</div>
   <input type="hidden" id="rowNumA">
 
   <div class="card">
-    <div class="card-hd"><div class="card-hd-icon">📋</div>基本資料</div>
+    <!-- ★ 修改：card-hd 加入 row-badge -->
+    <div class="card-hd">
+      <div class="card-hd-icon">📋</div>基本資料
+      <span class="row-badge" id="rowBadgeA"></span>
+    </div>
     <div class="field-row">
       <div class="field">
         <span class="field-label">編號</span>
@@ -474,6 +544,17 @@
   </div>
 </div>
 
+<!-- ★ 新增：送出成功後的紙本列號彈窗 -->
+<div id="rowConfirmModal" style="display:none; position:fixed; inset:0; z-index:9200; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; padding:20px;">
+  <div class="row-confirm-box">
+    <div class="row-confirm-icon">📋</div>
+    <div class="row-confirm-title">存檔完成！請紙本填寫清冊</div>
+    <div class="row-confirm-num" id="rowConfirmNum">—</div>
+    <div class="row-confirm-sub">第 <span id="rowConfirmNumInline">—</span> 列（清冊列號 = 表單列號 − 1）</div>
+    <button class="row-confirm-btn" onclick="closeRowConfirm()">✅ 已知悉，關閉</button>
+  </div>
+</div>
+
 <div id="lightbox">
   <img id="lbImg" src="">
   <div class="lb-btns">
@@ -497,6 +578,9 @@ var lbKey     = '';
 var resultSelB = '';
 
 var _isSearchMode = false;
+
+// ★ 新增：目前搜尋模式 ('no' | 'car')
+var _searchTabA = 'no';
 
 // ══ 呼叫 GAS 後端 ══
 function gasCall(payload, onSuccess, onFail){
@@ -522,11 +606,25 @@ function switchTab(t){
   });
 }
 
+// ★ 新增：切換扣車搜尋模式（單號 / 車號）
+function switchSearchTab(mode){
+  _searchTabA = mode;
+  document.getElementById('stab-no').classList.toggle('active', mode==='no');
+  document.getElementById('stab-car').classList.toggle('active', mode==='car');
+  document.getElementById('search-panel-no').style.display  = (mode==='no')  ? '' : 'none';
+  document.getElementById('search-panel-car').style.display = (mode==='car') ? '' : 'none';
+  hideErr('searchErrorA');
+  document.getElementById('carIdResults').style.display = 'none';
+  document.getElementById('carIdResults').innerHTML = '';
+}
+
 // ══ 初始化 ══
 (function init(){
   document.getElementById('moveDateA').value = todaySlash();
   document.getElementById('searchNoA').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchA(); });
   document.getElementById('searchNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchB(); });
+  // ★ 車號搜尋 Enter 鍵支援
+  document.getElementById('searchCarIdA').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchByCar(); });
   document.getElementById('reagentNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('tdB').focus(); });
   document.getElementById('tdB').value = todaySlash();
   setNowTime();
@@ -694,6 +792,19 @@ function closeGuardModal(){
   document.getElementById('guardModal').classList.remove('show');
 }
 
+// ★ 新增：紙本列號彈窗
+function showRowConfirm(sheetRow){
+  var paperRow = sheetRow - 1;
+  document.getElementById('rowConfirmNum').textContent = paperRow + ' 列';
+  document.getElementById('rowConfirmNumInline').textContent = paperRow;
+  var modal = document.getElementById('rowConfirmModal');
+  modal.style.display = 'flex';
+}
+function closeRowConfirm(){
+  document.getElementById('rowConfirmModal').style.display = 'none';
+  resetA();
+}
+
 // ══ 快篩送出 ══
 function submitB(){
   var reagentNo = document.getElementById('reagentNoB').value.trim();
@@ -837,7 +948,7 @@ function renderUsage(rows){
   body.innerHTML = html;
 }
 
-// ══ 扣車搜尋 ══
+// ══ 扣車搜尋（扣車單號）══
 function doSearchA(){
   var no=document.getElementById('searchNoA').value.trim();
   if(!no){showErr('searchErrorA','請輸入編號');return;}
@@ -847,26 +958,92 @@ function doSearchA(){
   gasCall({action:'searchData', no:no, type:'A'},
     function(res){
       btn.disabled=false; btn.textContent='搜尋';
-      if(!res){alert('查無此編號');return;}
-      document.getElementById('rowNumA').value      = res.row;
-      document.getElementById('editMsgA').style.display = 'block';
-      document.getElementById('noA').value          = res.values[1]  || '';
-      document.getElementById('moveDateA').value    = toDateInput(res.values[2]||'');
-      document.getElementById('carIdA').value       = res.values[3]  || '';
-      document.getElementById('ownerA').value       = res.values[4]  || '';
-      restoreChecks('ctype', res.values[5]);
-      document.getElementById('officeA').value      = res.values[6]  || '';
-      document.getElementById('ticketIdA').value    = res.values[7]  || '';
-      restoreChecks('law', res.values[8]);
-      document.getElementById('officerA').value     = res.values[9]  || '';
-      document.getElementById('plateStatusA').value = res.values[10] || '';
-      document.getElementById('inDateA').value      = toDateInput(res.values[11]||'');
-      loadDrivePhoto(res.values[12],'impound');
-      loadDrivePhoto(res.values[13],'ticket');
+      if(!res){showErr('searchErrorA','查無此編號');return;}
+      loadSearchResult(res);
       alert('資料已載入！（修改模式）');
     },
     function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
   );
+}
+
+// ★ 新增：車號搜尋
+function doSearchByCar(){
+  var carId = document.getElementById('searchCarIdA').value.trim();
+  if(!carId){ showErr('searchErrorA','請輸入車號'); return; }
+  hideErr('searchErrorA');
+  document.getElementById('carIdResults').style.display = 'none';
+  document.getElementById('carIdResults').innerHTML = '';
+  var btn = document.getElementById('searchBtnCar');
+  btn.disabled = true; btn.textContent = '搜尋中…';
+  gasCall({action:'searchByCarId', carId:carId},
+    function(res){
+      btn.disabled=false; btn.textContent='搜尋';
+      if(!res || !res.rows || res.rows.length===0){
+        showErr('searchErrorA','查無此車號：'+carId);
+        return;
+      }
+      if(res.rows.length === 1){
+        // 只有一筆，直接帶入
+        loadSearchResult(res.rows[0]);
+        alert('資料已載入！（修改模式）');
+        return;
+      }
+      // 多筆 → 顯示選單
+      renderCarIdResults(res.rows);
+    },
+    function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
+  );
+}
+
+// ★ 新增：多筆車號結果渲染
+function renderCarIdResults(rows){
+  var el = document.getElementById('carIdResults');
+  el.style.display = 'block';
+  var html = '<div style="font-size:12px;color:#666;margin-bottom:6px;">找到 '+rows.length+' 筆，請選擇：</div>';
+  for(var i=0;i<rows.length;i++){
+    var r = rows[i];
+    var no    = r.values[1] || '—';
+    var mdate = toDateInput(r.values[2]||'') || '—';
+    var owner = r.values[4] || '—';
+    var paperRow = r.row - 1;
+    html += '<div class="carid-result-item" onclick="selectCarIdResult('+i+')">'
+          + '<div class="carid-result-no">第 '+paperRow+' 列　扣車單號：'+no+'</div>'
+          + '<div class="carid-result-sub">車主：'+owner+'　移置日期：'+mdate+'</div>'
+          + '</div>';
+  }
+  el.innerHTML = html;
+  el._rows = rows;
+}
+function selectCarIdResult(idx){
+  var rows = document.getElementById('carIdResults')._rows;
+  if(!rows || !rows[idx]) return;
+  document.getElementById('carIdResults').style.display = 'none';
+  loadSearchResult(rows[idx]);
+  alert('資料已載入！（修改模式）');
+}
+
+// ★ 新增：共用帶入函式（單號搜尋和車號搜尋都用這個）
+function loadSearchResult(res){
+  var paperRow = res.row - 1;
+  document.getElementById('rowNumA').value      = res.row;
+  document.getElementById('editMsgA').style.display = 'block';
+  document.getElementById('noA').value          = res.values[1]  || '';
+  document.getElementById('moveDateA').value    = toDateInput(res.values[2]||'');
+  document.getElementById('carIdA').value       = res.values[3]  || '';
+  document.getElementById('ownerA').value       = res.values[4]  || '';
+  restoreChecks('ctype', res.values[5]);
+  document.getElementById('officeA').value      = res.values[6]  || '';
+  document.getElementById('ticketIdA').value    = res.values[7]  || '';
+  restoreChecks('law', res.values[8]);
+  document.getElementById('officerA').value     = res.values[9]  || '';
+  document.getElementById('plateStatusA').value = res.values[10] || '';
+  document.getElementById('inDateA').value      = toDateInput(res.values[11]||'');
+  loadDrivePhoto(res.values[12],'impound');
+  loadDrivePhoto(res.values[13],'ticket');
+  // ★ 顯示紙本列號 badge
+  var badge = document.getElementById('rowBadgeA');
+  badge.textContent = '📋 紙本第 ' + paperRow + ' 列';
+  badge.classList.add('show');
 }
 
 // ══ 扣車送出 ══
@@ -935,8 +1112,15 @@ function doSubmitA(no, logNote){
         doUploadPhoto('ticket', carId, no, function(tu){
           setProgA(85,'④ 寫入照片連結…');
           gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu},
-            function(){ setProgA(100,'✅ 完成！'); setTimeout(resetA, 900); },
-            function(){ setProgA(100,'⚠️ 連結寫入失敗'); setTimeout(resetA, 1500); }
+            function(){
+              setProgA(100,'✅ 完成！');
+              // ★ 顯示紙本列號彈窗，不再直接 resetA
+              showRowConfirm(sr);
+            },
+            function(){
+              setProgA(100,'⚠️ 連結寫入失敗');
+              showRowConfirm(sr);
+            }
           );
         });
       });
@@ -967,7 +1151,14 @@ function resetA(){
   });
   document.getElementById('rowNumA').value=''; document.getElementById('editMsgA').style.display='none';
   document.getElementById('searchNoA').value='';
+  document.getElementById('searchCarIdA').value='';
+  document.getElementById('carIdResults').style.display='none';
+  document.getElementById('carIdResults').innerHTML='';
   document.getElementById('btnA').disabled=false; document.getElementById('btnA').textContent='✅ 確認送出並存檔';
+  // ★ 清除列號 badge
+  var badge = document.getElementById('rowBadgeA');
+  badge.textContent = '';
+  badge.classList.remove('show');
   hideProgA();
 }
 function setProgA(p,t){document.getElementById('progA').style.display='block';document.getElementById('progA-fill').style.width=p+'%';document.getElementById('progA-text').textContent=t;}

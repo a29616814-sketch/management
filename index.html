@@ -3,52 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
-
   <style>
     * { box-sizing: border-box; }
     body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; background: #edf1f7; min-height: 100vh; -webkit-overflow-scrolling: touch; overflow-x: hidden; }
-
-    .topbar {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 3px 14px rgba(0,0,0,0.45);
-    }
-    .topbar-inner {
-      max-width: 680px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 18px 0;
-    }
+    .topbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 3px 14px rgba(0,0,0,0.45); }
+    .topbar-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px 0; }
     .topbar-title { color: #e0e0ff; font-size: 15px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; }
     .topbar-title span { color: #7ec8e3; }
     .tab-nav { display: flex; gap: 4px; }
-    .tab-btn {
-      border: none; background: transparent; color: #8898aa;
-      font-size: 13px; font-family: inherit; font-weight: bold;
-      padding: 10px 18px 12px; cursor: pointer; border-radius: 8px 8px 0 0;
-      transition: background 0.2s, color 0.2s; display: flex; flex-direction: column; align-items: center; gap: 2px; -webkit-tap-highlight-color: transparent;
-    }
+    .tab-btn { border: none; background: transparent; color: #8898aa; font-size: 13px; font-family: inherit; font-weight: bold; padding: 10px 18px 12px; cursor: pointer; border-radius: 8px 8px 0 0; transition: background 0.2s, color 0.2s; display: flex; flex-direction: column; align-items: center; gap: 2px; -webkit-tap-highlight-color: transparent; }
     .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
     .tab-btn.active { color: #1a1a2e; background: #edf1f7; font-weight: bold; }
     .tab-icon { font-size: 17px; }
-
     .page-wrap { max-width: 640px; margin: 0 auto; padding: 18px 14px 50px; }
     .panel { display: none; }
     .panel.active { display: block; }
-
     .card { background: #fff; border-radius: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); padding: 20px 20px 18px; margin-bottom: 14px; }
     .card-hd { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: bold; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1.5px solid #f0f2f7; }
     .card-hd-icon { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg,#0f3460,#1a5276); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-
-    /* ★ 新增：紙本列號 badge */
-    .row-badge {
-      display: none; margin-left: auto;
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-      color: #fff; font-size: 13px; font-weight: bold;
-      padding: 4px 12px; border-radius: 20px;
-      letter-spacing: 0.5px; white-space: nowrap;
-    }
+    .row-badge { display: none; margin-left: auto; background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; font-size: 13px; font-weight: bold; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap; }
     .row-badge.show { display: inline-flex; align-items: center; gap: 4px; }
-
     .field { margin-bottom: 14px; }
     .field:last-child { margin-bottom: 0; }
     .field-label { font-size: 12px; font-weight: bold; color: #8898aa; letter-spacing: 0.5px; text-transform: uppercase; display: block; margin-bottom: 6px; }
@@ -56,7 +30,6 @@
     .field-input:focus { outline: none; border-color: #0f3460; background: #fff; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
     .field-row .field { margin-bottom: 0; }
-
     .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip-label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1.5px solid #e4e9f0; border-radius: 20px; cursor: pointer; font-size: 14px; font-family: inherit; color: #444; background: #fafbfc; transition: background 0.15s, border-color 0.15s, color 0.15s; user-select: none; -webkit-tap-highlight-color: transparent; }
     .chip-label:hover { border-color: #0f3460; background: #eef2f8; }
@@ -69,17 +42,9 @@
     .chip-label.sel-oth  { background:#6f42c1; border-color:#6f42c1; color:#fff; font-weight:bold; }
     .other-text { display: none; width: 100%; margin-top: 8px; padding: 9px 13px; border: 1.5px solid #6f42c1; border-radius: 9px; font-size: 14px; font-family: inherit; }
     .other-text.show { display: block; }
-
-    /* ★ 修改：搜尋卡片支援兩種搜尋模式 */
     .search-card { background: linear-gradient(135deg,#e8f4fd 0%,#ede8fd 100%); border: 1.5px solid #c5d8f5; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
     .search-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-    .search-tab-btn {
-      flex: 1; padding: 7px 0; border: 1.5px solid #c5d8f5; border-radius: 8px;
-      background: rgba(255,255,255,0.6); color: #555; font-size: 13px; font-family: inherit;
-      font-weight: bold; cursor: pointer; text-align: center;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
+    .search-tab-btn { flex: 1; padding: 7px 0; border: 1.5px solid #c5d8f5; border-radius: 8px; background: rgba(255,255,255,0.6); color: #555; font-size: 13px; font-family: inherit; font-weight: bold; cursor: pointer; text-align: center; transition: background 0.15s, color 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent; }
     .search-tab-btn.active { background: #0f3460; color: #fff; border-color: #0f3460; }
     .search-row { display: flex; gap: 8px; margin-top: 8px; }
     .search-row input { flex: 1; padding: 10px 13px; border: 1.5px solid #c5d8f5; border-radius: 9px; font-size: 15px; font-family: inherit; background: #fff; }
@@ -88,30 +53,15 @@
     .search-btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .edit-badge { display: none; text-align: center; background: #fff3cd; color: #856404; padding: 9px 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #ffd166; font-weight: bold; font-size: 14px; }
     .error-msg { color: #721c24; background: #f8d7da; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border: 1px solid #f5c6cb; display: none; font-size: 13px; }
-
-    /* ★ 新增：車號搜尋多筆結果選單 */
     .carid-results { margin-top: 10px; display: none; }
-    .carid-result-item {
-      padding: 10px 14px; background: #fff; border: 1.5px solid #c5d8f5;
-      border-radius: 9px; margin-bottom: 6px; cursor: pointer; font-size: 14px;
-      transition: background 0.15s;
-    }
+    .carid-result-item { padding: 10px 14px; background: #fff; border: 1.5px solid #c5d8f5; border-radius: 9px; margin-bottom: 6px; cursor: pointer; font-size: 14px; transition: background 0.15s; }
     .carid-result-item:hover { background: #eef6ff; border-color: #0f3460; }
     .carid-result-no { font-weight: bold; color: #0f3460; }
     .carid-result-sub { font-size: 12px; color: #888; margin-top: 2px; }
-
-    /* 試劑編號大字輸入 */
-    .reagent-no-input {
-      width: 100%; padding: 14px 18px; border: 2px solid #e4e9f0; border-radius: 12px;
-      font-size: 28px; font-weight: bold; color: #0f3460; text-align: center;
-      font-family: inherit; background: #fafbfc; letter-spacing: 2px;
-      -moz-appearance: textfield;
-    }
-    .reagent-no-input::-webkit-inner-spin-button,
-    .reagent-no-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .reagent-no-input { width: 100%; padding: 14px 18px; border: 2px solid #e4e9f0; border-radius: 12px; font-size: 28px; font-weight: bold; color: #0f3460; text-align: center; font-family: inherit; background: #fafbfc; letter-spacing: 2px; -moz-appearance: textfield; }
+    .reagent-no-input::-webkit-inner-spin-button, .reagent-no-input::-webkit-outer-spin-button { -webkit-appearance: none; }
     .reagent-no-input:focus { outline: none; border-color: #0f3460; background: #fff; box-shadow: 0 0 0 3px rgba(15,52,96,0.1); }
     .reagent-hint { font-size: 12px; color: #aaa; margin-top: 6px; text-align: center; }
-
     .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
     .photo-cell { border: 1.5px solid #e4e9f0; border-radius: 12px; padding: 12px; background: #fafbfc; text-align: center; }
     .photo-cell-title { font-size: 12px; font-weight: bold; color: #666; margin-bottom: 8px; }
@@ -123,17 +73,14 @@
     .photo-stat.ok  { color: #28a745; font-weight: bold; }
     .photo-stat.err { color: #dc3545; font-weight: bold; }
     .view-lnk { font-size: 12px; color: #0f3460; text-decoration: underline; cursor: pointer; display: none; margin-top: 3px; }
-
     .prog-wrap { display: none; margin-top: 10px; background: #f0f3fa; border-radius: 10px; padding: 12px; }
     .prog-bar { width: 100%; height: 8px; background: #dde3ef; border-radius: 4px; overflow: hidden; }
     .prog-fill { height: 100%; background: linear-gradient(90deg,#0f3460,#2980b9); width: 0%; transition: width 0.4s; border-radius: 4px; }
     .prog-text { font-size: 13px; color: #555; margin-top: 7px; text-align: center; font-weight: bold; }
-
     .btn-main { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-family: inherit; font-weight: bold; cursor: pointer; background: linear-gradient(135deg,#0f3460,#1a5276); color: #fff; margin-top: 8px; box-shadow: 0 2px 6px rgba(15,52,96,0.2); transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
     .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-sub { width: 100%; padding: 12px; border: 1.5px solid #0f3460; border-radius: 12px; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; background: #fff; color: #0f3460; margin-top: 8px; }
     .btn-ghost { width: 100%; padding: 10px; border: none; border-radius: 10px; font-size: 13px; font-family: inherit; cursor: pointer; background: none; color: #aaa; text-decoration: underline; margin-top: 4px; }
-
     #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; flex-direction:column; }
     #lightbox.show { display:flex; }
     #lightbox img { max-width:95vw; max-height:78vh; border-radius:10px; object-fit:contain; }
@@ -142,106 +89,44 @@
     #lb-close { background:#dc3545; color:#fff; }
     #lb-share { background:#28a745; color:#fff; }
     #lb-dl    { background:#0f3460; color:#fff; }
-
-    /* 日期輸入組合 */
     .date-wrap { display: flex; gap: 6px; align-items: center; }
     .date-wrap .field-input { flex: 1; }
-    .date-pick-btn {
-      flex-shrink: 0; padding: 0 12px; height: 44px; line-height: 44px;
-      background: #0f3460; color: #fff; border: none; border-radius: 10px;
-      font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
+    .date-pick-btn { flex-shrink: 0; padding: 0 12px; height: 44px; line-height: 44px; background: #0f3460; color: #fff; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .date-pick-hidden { display: none; }
-
-    /* ── 手機全面優化 ── */
-    input, select, textarea, button {
-      font-size: 16px !important;
-      font-family: inherit;
-    }
-    .search-row input {
-      -webkit-appearance: none;
-      border-radius: 9px;
-    }
-    .btn-sub, .btn-ghost, .search-btn, .cam-btn, .date-pick-btn {
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
+    input, select, textarea, button { font-size: 16px !important; font-family: inherit; }
+    .search-row input { -webkit-appearance: none; border-radius: 9px; }
+    .btn-sub, .btn-ghost, .search-btn, .cam-btn, .date-pick-btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     .btn-main { touch-action: manipulation; }
     .chip-label { min-height: 44px; }
     .time-wrap { display: flex; gap: 6px; align-items: center; }
     .time-wrap .field-input { flex: 1; text-align: center; letter-spacing: 2px; font-weight: bold; }
-    .time-now-btn {
-      flex-shrink: 0; padding: 0 10px; height: 44px;
-      background: #17a2b8; color: #fff; border: none; border-radius: 10px;
-      font-size: 15px !important; cursor: pointer; white-space: nowrap;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-    }
+    .time-now-btn { flex-shrink: 0; padding: 0 10px; height: 44px; background: #17a2b8; color: #fff; border: none; border-radius: 10px; font-size: 15px !important; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     .prog-text { font-size: 14px !important; }
     .field-label { text-transform: none; letter-spacing: 0; font-size: 13px !important; }
     .page-wrap { padding-bottom: calc(50px + env(safe-area-inset-bottom)); }
     .search-desc { font-size: 12px !important; color: #888; margin-top: 3px; }
-
-    /* ── 防呆 Modal ── */
-    #guardModal {
-      display: none; position: fixed; inset: 0; z-index: 9100;
-      background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px;
-    }
+    #guardModal { display: none; position: fixed; inset: 0; z-index: 9100; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px; }
     #guardModal.show { display: flex; }
-    .guard-box {
-      background: #fff; border-radius: 18px; width: 100%; max-width: 400px;
-      padding: 24px 22px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.22);
-    }
+    .guard-box { background: #fff; border-radius: 18px; width: 100%; max-width: 400px; padding: 24px 22px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); }
     .guard-icon { font-size: 36px; text-align: center; margin-bottom: 10px; }
     .guard-title { font-size: 17px; font-weight: bold; color: #1a1a2e; text-align: center; margin-bottom: 10px; }
     .guard-msg { font-size: 14px; color: #444; line-height: 1.7; text-align: center; margin-bottom: 20px; }
     .guard-msg strong { color: #c0392b; }
     .guard-btns { display: flex; flex-direction: column; gap: 8px; }
-    .guard-btn-confirm {
-      width: 100%; padding: 13px; border: none; border-radius: 10px;
-      background: #dc3545; color: #fff; font-size: 15px; font-family: inherit;
-      font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
-    .guard-btn-cancel {
-      width: 100%; padding: 12px; border: 1.5px solid #ccc; border-radius: 10px;
-      background: #fff; color: #555; font-size: 15px; font-family: inherit;
-      font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
-    /* 試劑編號欄位檢查中狀態 */
+    .guard-btn-confirm { width: 100%; padding: 13px; border: none; border-radius: 10px; background: #dc3545; color: #fff; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .guard-btn-cancel { width: 100%; padding: 12px; border: 1.5px solid #ccc; border-radius: 10px; background: #fff; color: #555; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .reagent-no-input.checking { border-color: #fd7e14; background: #fffaf0; }
     .reagent-no-input.blocked  { border-color: #dc3545; background: #fff5f5; }
     .reagent-no-input.warned   { border-color: #ffc107; background: #fffdf0; }
     .reagent-no-input.clear    { border-color: #28a745; background: #f0fff4; }
-
-    /* ── 領用狀況 Modal ── */
-    #usageModal {
-      display: none; position: fixed; inset: 0; z-index: 9000;
-      background: rgba(0,0,0,0.55); align-items: flex-end; justify-content: center;
-    }
+    #usageModal { display: none; position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.55); align-items: flex-end; justify-content: center; }
     #usageModal.show { display: flex; }
-    .usage-sheet {
-      background: #fff; border-radius: 20px 20px 0 0;
-      width: 100%; max-width: 640px; max-height: 80vh;
-      display: flex; flex-direction: column;
-      padding: 0 0 env(safe-area-inset-bottom);
-    }
-    .usage-sheet-hd {
-      padding: 16px 20px 12px;
-      border-bottom: 1.5px solid #f0f2f7;
-      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-    }
+    .usage-sheet { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 640px; max-height: 80vh; display: flex; flex-direction: column; padding: 0 0 env(safe-area-inset-bottom); }
+    .usage-sheet-hd { padding: 16px 20px 12px; border-bottom: 1.5px solid #f0f2f7; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
     .usage-sheet-title { font-size: 16px; font-weight: bold; color: #1a1a2e; }
-    .usage-sheet-close {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: #f0f2f7; border: none; font-size: 18px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-    }
+    .usage-sheet-close { width: 32px; height: 32px; border-radius: 50%; background: #f0f2f7; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
     .usage-sheet-body { overflow-y: auto; padding: 12px 16px 20px; flex: 1; }
-    .usage-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 10px; margin-bottom: 6px;
-      border: 1.5px solid #e4e9f0; background: #fafbfc;
-    }
+    .usage-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; border: 1.5px solid #e4e9f0; background: #fafbfc; }
     .usage-row.warn { background: #fff8e1; border-color: #ffc107; }
     .usage-row.ok   { background: #f0fff4; border-color: #28a745; }
     .usage-row.idle { background: #f8f0ff; border-color: #6f42c1; }
@@ -255,23 +140,12 @@
     .usage-badge.idle { background: #6f42c1; color: #fff; }
     .usage-empty { text-align: center; color: #aaa; padding: 30px 0; font-size: 15px; }
     .usage-loading { text-align: center; color: #0f3460; padding: 30px 0; font-size: 15px; }
-
-    /* ★ 新增：送出後列號彈窗特殊樣式 */
-    .row-confirm-box {
-      background: linear-gradient(135deg, #0f3460, #1a5276);
-      color: #fff; border-radius: 18px; width: 100%; max-width: 400px;
-      padding: 28px 22px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      text-align: center;
-    }
+    .row-confirm-box { background: linear-gradient(135deg, #0f3460, #1a5276); color: #fff; border-radius: 18px; width: 100%; max-width: 400px; padding: 28px 22px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
     .row-confirm-icon { font-size: 42px; margin-bottom: 10px; }
     .row-confirm-title { font-size: 16px; font-weight: bold; color: #b0d4f1; margin-bottom: 6px; }
     .row-confirm-num { font-size: 64px; font-weight: 900; color: #fff; line-height: 1; margin: 8px 0; letter-spacing: -2px; }
     .row-confirm-sub { font-size: 14px; color: #8ab4d4; margin-bottom: 20px; }
-    .row-confirm-btn {
-      width: 100%; padding: 13px; border: none; border-radius: 10px;
-      background: rgba(255,255,255,0.2); color: #fff; font-size: 15px; font-family: inherit;
-      font-weight: bold; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.3);
-    }
+    .row-confirm-btn { width: 100%; padding: 13px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.2); color: #fff; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -280,42 +154,33 @@
   <div class="topbar-inner">
     <div class="topbar-title">🚓 <span>埔墘</span>管理系統</div>
     <div class="tab-nav">
-      <button class="tab-btn active" id="tab-A" onclick="switchTab('A')">
-        <span class="tab-icon">🚗</span>扣車管制
-      </button>
-      <button class="tab-btn" id="tab-B" onclick="switchTab('B')">
-        <span class="tab-icon">🧪</span>快篩管制
-      </button>
+      <button class="tab-btn active" id="tab-A" onclick="switchTab('A')"><span class="tab-icon">🚗</span>扣車管制</button>
+      <button class="tab-btn" id="tab-B" onclick="switchTab('B')"><span class="tab-icon">🧪</span>快篩管制</button>
     </div>
   </div>
 </div>
 
 <div class="page-wrap">
 
-<!-- ═══════════ PANEL A：扣車管制 ═══════════ -->
+<!-- ═══════ PANEL A ═══════ -->
 <div class="panel active" id="panel-A">
-
-  <!-- ★ 修改：搜尋區，新增車號搜尋切換 -->
   <div class="search-card">
     <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋修改</div>
     <div class="search-tabs" style="margin-top:8px;">
-      <button class="search-tab-btn active" id="stab-no" onclick="switchSearchTab('no')">📋 扣車單號</button>
-      <button class="search-tab-btn" id="stab-car" onclick="switchSearchTab('car')">🚗 車號搜尋</button>
+      <button class="search-tab-btn active" id="stab-no"  onclick="switchSearchTab('no')">📋 扣車單號</button>
+      <button class="search-tab-btn"        id="stab-car" onclick="switchSearchTab('car')">🚗 車號搜尋</button>
     </div>
-    <!-- 扣車單號搜尋 -->
     <div id="search-panel-no">
       <div class="search-row">
         <input type="text" id="searchNoA" placeholder="請輸入 B 欄編號" inputmode="numeric" autocomplete="off">
         <button class="search-btn" id="searchBtnA" onclick="doSearchA()">搜尋</button>
       </div>
     </div>
-    <!-- 車號搜尋 -->
     <div id="search-panel-car" style="display:none;">
       <div class="search-row">
         <input type="text" id="searchCarIdA" placeholder="例：ABC-1234" oninput="this.value=this.value.toUpperCase()" autocomplete="off" autocapitalize="characters">
         <button class="search-btn" id="searchBtnCar" onclick="doSearchByCar()">搜尋</button>
       </div>
-      <!-- 車號搜尋多筆結果 -->
       <div class="carid-results" id="carIdResults"></div>
     </div>
     <div id="searchErrorA" class="error-msg"></div>
@@ -325,7 +190,6 @@
   <input type="hidden" id="rowNumA">
 
   <div class="card">
-    <!-- ★ 修改：card-hd 加入 row-badge -->
     <div class="card-hd">
       <div class="card-hd-icon">📋</div>基本資料
       <span class="row-badge" id="rowBadgeA"></span>
@@ -431,11 +295,8 @@
   <button class="btn-ghost" onclick="resetA()">清空 / 新增模式</button>
 </div>
 
-
-<!-- ═══════════ PANEL B：快篩管制 ═══════════ -->
+<!-- ═══════ PANEL B ═══════ -->
 <div class="panel" id="panel-B">
-
-  <!-- 搜尋修改 -->
   <div class="search-card">
     <div style="font-size:13px;font-weight:bold;color:#444;">🔍 搜尋已存資料（輸入試劑編號）</div>
     <div class="search-desc">若要新增直接填下方表單，搜尋用於查詢或修改舊資料</div>
@@ -448,7 +309,6 @@
   <div class="edit-badge" id="editMsgB">⚠️ 修改模式 — 資料已載入，修改後送出即覆蓋</div>
   <input type="hidden" id="rowNumB">
 
-  <!-- 試劑編號（大字輸入，單一欄位） -->
   <div class="card">
     <div class="card-hd"><div class="card-hd-icon">🔢</div>試劑編號</div>
     <div class="field">
@@ -458,7 +318,6 @@
     </div>
   </div>
 
-  <!-- 採驗資料（固定一筆） -->
   <div class="card">
     <div class="card-hd"><div class="card-hd-icon">🧪</div>採驗資料</div>
     <div class="field-row">
@@ -504,7 +363,6 @@
     </div>
   </div>
 
-  <!-- 操作人員 -->
   <div class="card">
     <div class="card-hd"><div class="card-hd-icon">👮</div>操作人員</div>
     <div class="field">
@@ -538,23 +396,22 @@
       <div class="usage-sheet-title">📋 領用狀況（近30筆）</div>
       <button class="usage-sheet-close" onclick="closeUsageModal()">✕</button>
     </div>
-    <div class="usage-sheet-body" id="usageBody">
-      <div class="usage-loading">載入中…</div>
-    </div>
+    <div class="usage-sheet-body" id="usageBody"><div class="usage-loading">載入中…</div></div>
   </div>
 </div>
 
-<!-- ★ 新增：送出成功後的紙本列號彈窗 -->
+<!-- 送出成功：紙本列號彈窗 -->
 <div id="rowConfirmModal" style="display:none; position:fixed; inset:0; z-index:9200; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; padding:20px;">
   <div class="row-confirm-box">
     <div class="row-confirm-icon">📋</div>
     <div class="row-confirm-title">存檔完成！請紙本填寫清冊</div>
     <div class="row-confirm-num" id="rowConfirmNum">—</div>
-    <div class="row-confirm-sub">第 <span id="rowConfirmNumInline">—</span> 列（請照提示編號填寫）</div>
+    <div class="row-confirm-sub">第 <span id="rowConfirmNumInline">—</span> 列（清冊列號 = 表單列號 − 1）</div>
     <button class="row-confirm-btn" onclick="closeRowConfirm()">✅ 已知悉，關閉</button>
   </div>
 </div>
 
+<!-- Lightbox -->
 <div id="lightbox">
   <img id="lbImg" src="">
   <div class="lb-btns">
@@ -566,36 +423,38 @@
 
 <script>
 // ══════════════════════════════════════════════
-// ★ 部署後請把下面 GAS_URL 換成你的 GAS Web App 網址
-// ★ SECRET_TOKEN 要跟 GAS Code.gs 裡的 TOKEN 一樣
-// ══════════════════════════════════════════════
 var GAS_URL      = 'https://script.google.com/macros/s/AKfycbwxBoGIjfeCsX8NzsDiJlGWuiMkHXYJXcYO_Ki5dMZZHh_8PQYCwYcSKOnh62Z2Sx6v/exec';
 var SECRET_TOKEN = 'pkq2025secret';
 
-var photos    = { impound:null, ticket:null };
-var driveUrls = { impound:'', ticket:'' };
-var lbKey     = '';
-var resultSelB = '';
-
+var photos       = { impound:null, ticket:null };
+var driveUrls    = { impound:'', ticket:'' };
+var lbKey        = '';
+var resultSelB   = '';
 var _isSearchMode = false;
+// ★ 車號搜尋結果暫存（閉包取代 DOM._rows，避免污染）
+var _carIdRows   = [];
 
-// ★ 新增：目前搜尋模式 ('no' | 'car')
-var _searchTabA = 'no';
-
-// ══ 呼叫 GAS 後端 ══
+// ══ gasCall：加 30 秒 timeout，避免 GAS 轉圈無回應 ══
 function gasCall(payload, onSuccess, onFail){
   payload.token = SECRET_TOKEN;
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, 30000);
   fetch(GAS_URL, {
     method:  'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body:    JSON.stringify(payload)
+    body:    JSON.stringify(payload),
+    signal:  ctrl.signal
   })
-  .then(function(r){ return r.json(); })
+  .then(function(r){ clearTimeout(timer); return r.json(); })
   .then(function(data){
     if(data && data.error){ if(onFail) onFail({message:data.error}); else alert('❌ '+data.error); return; }
     onSuccess(data);
   })
-  .catch(function(e){ if(onFail) onFail({message:e.message}); else alert('❌ 連線失敗：'+e.message); });
+  .catch(function(e){
+    clearTimeout(timer);
+    var msg = (e.name === 'AbortError') ? '連線逾時（30秒），請重試' : e.message;
+    if(onFail) onFail({message:msg}); else alert('❌ 連線失敗：'+msg);
+  });
 }
 
 // ══ 頁籤 ══
@@ -606,32 +465,30 @@ function switchTab(t){
   });
 }
 
-// ★ 新增：切換扣車搜尋模式（單號 / 車號）
+// ══ 切換扣車搜尋模式 ══
 function switchSearchTab(mode){
-  _searchTabA = mode;
-  document.getElementById('stab-no').classList.toggle('active', mode==='no');
+  document.getElementById('stab-no').classList.toggle('active',  mode==='no');
   document.getElementById('stab-car').classList.toggle('active', mode==='car');
   document.getElementById('search-panel-no').style.display  = (mode==='no')  ? '' : 'none';
   document.getElementById('search-panel-car').style.display = (mode==='car') ? '' : 'none';
   hideErr('searchErrorA');
   document.getElementById('carIdResults').style.display = 'none';
   document.getElementById('carIdResults').innerHTML = '';
+  _carIdRows = [];
 }
 
 // ══ 初始化 ══
 (function init(){
   document.getElementById('moveDateA').value = todaySlash();
-  document.getElementById('searchNoA').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchA(); });
-  document.getElementById('searchNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchB(); });
-  // ★ 車號搜尋 Enter 鍵支援
+  document.getElementById('searchNoA').addEventListener('keydown',   function(e){ if(e.key==='Enter') doSearchA(); });
+  document.getElementById('searchNoB').addEventListener('keydown',   function(e){ if(e.key==='Enter') doSearchB(); });
   document.getElementById('searchCarIdA').addEventListener('keydown',function(e){ if(e.key==='Enter') doSearchByCar(); });
-  document.getElementById('reagentNoB').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('tdB').focus(); });
+  document.getElementById('reagentNoB').addEventListener('keydown',  function(e){ if(e.key==='Enter') document.getElementById('tdB').focus(); });
   document.getElementById('tdB').value = todaySlash();
   setNowTime();
 })();
 
-// ══ 日期工具 ══
-function todayISO(){ return new Date().toLocaleDateString('en-CA'); }
+// ══ 日期 / 時間工具 ══
 function fmtTime(el){
   var v = el.value.replace(/[^0-9]/g,'');
   if(v.length > 2) v = v.slice(0,2)+':'+v.slice(2);
@@ -639,22 +496,22 @@ function fmtTime(el){
 }
 function setNowTime(){
   var now = new Date();
-  var hh = ('0'+now.getHours()).slice(-2);
-  var mm = ('0'+now.getMinutes()).slice(-2);
-  document.getElementById('ttB').value = hh+':'+mm;
+  document.getElementById('ttB').value = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
 }
-function slashToISO(s){
-  if(!s) return '';
-  s = String(s).trim();
-  var y,m2,d2;
-  var ma = s.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-  if(ma){ y=parseInt(ma[1],10); m2=ma[2]; d2=ma[3]; }
-  var mb = !ma && s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(mb){ y=parseInt(mb[1],10); m2=mb[2]; d2=mb[3]; }
-  if(y && y > 1911){
-    return (y-1911)+'/'+m2+'/'+d2;
-  }
-  return s;
+function todaySlash(){
+  var d = new Date();
+  return d.getFullYear()+'/'+(('0'+(d.getMonth()+1)).slice(-2))+'/'+('0'+d.getDate()).slice(-2);
+}
+function fmtDate(el){
+  var v = el.value.replace(/[^0-9]/g,'');
+  if(v.length > 4) v = v.slice(0,4)+'/'+v.slice(4);
+  if(v.length > 7) v = v.slice(0,7)+'/'+v.slice(7);
+  el.value = v.slice(0,10);
+}
+function pickDate(picker, targetId){
+  var v = picker.value; if(!v) return;
+  var p = v.split('-');
+  document.getElementById(targetId).value = p[0]+'/'+p[1]+'/'+p[2];
 }
 function toDateInput(s){
   if(!s) return '';
@@ -669,25 +526,17 @@ function toDateInput(s){
   }
   return '';
 }
-function isoToSlash(s){ return toDateInput(s); }
-function pickDate(picker, targetId){
-  var v = picker.value;
-  if(!v) return;
-  var p = v.split('-');
-  document.getElementById(targetId).value = p[0]+'/'+p[1]+'/'+p[2];
-}
-function fmtDate(el){
-  var v = el.value.replace(/[^0-9]/g,'');
-  if(v.length > 4) v = v.slice(0,4)+'/'+v.slice(4);
-  if(v.length > 7) v = v.slice(0,7)+'/'+v.slice(7);
-  el.value = v.slice(0,10);
-}
-function todaySlash(){
-  var d=new Date();
-  return d.getFullYear()+'/'+(('0'+(d.getMonth()+1)).slice(-2))+'/'+('0'+d.getDate()).slice(-2);
+function slashToISO(s){
+  if(!s) return '';
+  s = String(s).trim();
+  var ma = s.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if(ma){ var y=parseInt(ma[1],10); if(y>1911) return (y-1911)+'/'+ma[2]+'/'+ma[3]; }
+  var mb = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(mb){ var y2=parseInt(mb[1],10); if(y2>1911) return (y2-1911)+'/'+mb[2]+'/'+mb[3]; }
+  return s;
 }
 
-// ══ 扣車：車種 / 法條 chip ══
+// ══ chip 工具 ══
 function refreshCarChips(){
   document.querySelectorAll('#ctype-group .chip-label').forEach(function(lb){
     lb.classList.toggle('sel-car', lb.querySelector('input').checked);
@@ -710,7 +559,7 @@ function getRadioVal(name){ var el=document.querySelector('input[name="'+name+'"
 function getCheckVal(name){ var v=[]; document.querySelectorAll('input[name="'+name+'"]:checked').forEach(function(c){v.push(c.value);}); return v.join(','); }
 function fmtCheck(opts,sel){ var a=sel?sel.split(','):[]; return opts.map(function(o){return(a.includes(o)?'■':'□')+o;}).join(''); }
 
-// ══ 快篩：檢驗結果 chip ══
+// ══ 快篩結果 chip ══
 var RC = {pos:'sel-pos', neg:'sel-neg', ref:'sel-ref', oth:'sel-oth'};
 function selResult(v){
   resultSelB = v;
@@ -743,6 +592,248 @@ function restoreResult(stored){
   }
 }
 
+// ══ Modal 工具 ══
+function showGuardModal(icon, title, msg, btns){
+  document.getElementById('guardIcon').textContent  = icon;
+  document.getElementById('guardTitle').textContent = title;
+  document.getElementById('guardMsg').innerHTML     = msg;
+  var btnsEl = document.getElementById('guardBtns');
+  btnsEl.innerHTML = '';
+  btns.forEach(function(b){
+    var el = document.createElement('button');
+    el.className   = b.cls;
+    el.textContent = b.text;
+    el.onclick     = b.cb;
+    btnsEl.appendChild(el);
+  });
+  document.getElementById('guardModal').classList.add('show');
+}
+function closeGuardModal(){ document.getElementById('guardModal').classList.remove('show'); }
+
+function showRowConfirm(sheetRow){
+  var paperRow = sheetRow - 1;
+  document.getElementById('rowConfirmNum').textContent       = paperRow + ' 列';
+  document.getElementById('rowConfirmNumInline').textContent = paperRow;
+  document.getElementById('rowConfirmModal').style.display   = 'flex';
+}
+function closeRowConfirm(){
+  document.getElementById('rowConfirmModal').style.display = 'none';
+  resetA();
+}
+
+// ══ 扣車搜尋：單號 ══
+function doSearchA(){
+  var no = document.getElementById('searchNoA').value.trim();
+  if(!no){ showErr('searchErrorA','請輸入編號'); return; }
+  hideErr('searchErrorA');
+  var btn = document.getElementById('searchBtnA');
+  btn.disabled=true; btn.textContent='搜尋中…';
+  gasCall({action:'searchData', no:no, type:'A'},
+    function(res){
+      btn.disabled=false; btn.textContent='搜尋';
+      // ★ 防呆：GAS 回 null 或格式不對都安全處理
+      if(!res || !res.values){ showErr('searchErrorA','查無此編號'); return; }
+      loadSearchResult(res);
+      alert('資料已載入！（修改模式）');
+    },
+    function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
+  );
+}
+
+// ══ 扣車搜尋：車號 ══
+function doSearchByCar(){
+  var carId = document.getElementById('searchCarIdA').value.trim();
+  if(!carId){ showErr('searchErrorA','請輸入車號'); return; }
+  hideErr('searchErrorA');
+  document.getElementById('carIdResults').style.display = 'none';
+  document.getElementById('carIdResults').innerHTML = '';
+  _carIdRows = [];
+  var btn = document.getElementById('searchBtnCar');
+  btn.disabled=true; btn.textContent='搜尋中…';
+  gasCall({action:'searchByCarId', carId:carId},
+    function(res){
+      btn.disabled=false; btn.textContent='搜尋';
+      // ★ 防呆：res 或 rows 不存在
+      if(!res || !res.rows || res.rows.length===0){
+        showErr('searchErrorA','查無此車號：'+carId); return;
+      }
+      // ★ 防呆：每筆 row 檢查 values 存在
+      var valid = res.rows.filter(function(r){ return r && r.values; });
+      if(valid.length===0){ showErr('searchErrorA','資料格式異常，請重試'); return; }
+      if(valid.length===1){ loadSearchResult(valid[0]); alert('資料已載入！（修改模式）'); return; }
+      _carIdRows = valid;
+      renderCarIdResults(valid);
+    },
+    function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
+  );
+}
+
+// ══ 車號多筆結果渲染（data-idx 取代 DOM._rows）══
+function renderCarIdResults(rows){
+  var el = document.getElementById('carIdResults');
+  el.style.display = 'block';
+  var html = '<div style="font-size:12px;color:#666;margin-bottom:6px;">找到 '+rows.length+' 筆，請選擇：</div>';
+  for(var i=0;i<rows.length;i++){
+    var r = rows[i];
+    var no       = r.values[1] || '—';
+    var mdate    = toDateInput(r.values[2]||'') || '—';
+    var owner    = r.values[4] || '—';
+    var paperRow = r.row - 1;
+    html += '<div class="carid-result-item" data-idx="'+i+'" onclick="selectCarIdResult(this)">'
+          + '<div class="carid-result-no">第 '+paperRow+' 列　扣車單號：'+no+'</div>'
+          + '<div class="carid-result-sub">車主：'+owner+'　移置日期：'+mdate+'</div>'
+          + '</div>';
+  }
+  el.innerHTML = html;
+}
+function selectCarIdResult(el){
+  var idx = parseInt(el.getAttribute('data-idx'), 10);
+  if(!_carIdRows[idx]) return;
+  document.getElementById('carIdResults').style.display = 'none';
+  loadSearchResult(_carIdRows[idx]);
+  alert('資料已載入！（修改模式）');
+}
+
+// ══ 共用帶入函式 ══
+function loadSearchResult(res){
+  // ★ 防呆：任何呼叫來源都先確認格式
+  if(!res || !res.values || !res.row){
+    showErr('searchErrorA','資料格式異常，請重新搜尋'); return;
+  }
+  var paperRow = res.row - 1;
+  document.getElementById('rowNumA').value               = res.row;
+  document.getElementById('editMsgA').style.display      = 'block';
+  document.getElementById('noA').value                   = res.values[1]  || '';
+  document.getElementById('moveDateA').value             = toDateInput(res.values[2]||'');
+  document.getElementById('carIdA').value                = res.values[3]  || '';
+  document.getElementById('ownerA').value                = res.values[4]  || '';
+  restoreChecks('ctype', res.values[5]);
+  document.getElementById('officeA').value               = res.values[6]  || '';
+  document.getElementById('ticketIdA').value             = res.values[7]  || '';
+  restoreChecks('law', res.values[8]);
+  document.getElementById('officerA').value              = res.values[9]  || '';
+  document.getElementById('plateStatusA').value          = res.values[10] || '';
+  document.getElementById('inDateA').value               = toDateInput(res.values[11]||'');
+  loadDrivePhoto(res.values[12],'impound');
+  loadDrivePhoto(res.values[13],'ticket');
+  var badge = document.getElementById('rowBadgeA');
+  badge.textContent = '📋 紙本第 ' + paperRow + ' 列';
+  badge.classList.add('show');
+}
+
+// ══ 扣車送出 ══
+function submitA(){
+  var no       = document.getElementById('noA').value.trim();
+  var carId    = document.getElementById('carIdA').value.trim();
+  var moveDate = slashToISO(document.getElementById('moveDateA').value);
+  var cType    = getRadioVal('ctype');
+  if(!no)      { alert('請填寫編號'); return; }
+  if(!carId)   { alert('請填寫車號'); return; }
+  if(!moveDate){ alert('請填寫移置日期'); return; }
+  if(!cType)   { alert('請選擇車種'); return; }
+  if(!/^\d{8,9}$/.test(no)){
+    showGuardModal('⚠️','編號格式錯誤','編號必須為 <strong>8～9碼數字</strong>，目前輸入：「'+no+'」，請確認後重新輸入。',
+      [{ text:'知道了', cls:'guard-btn-confirm', cb: function(){ closeGuardModal(); document.getElementById('noA').focus(); } }]
+    );
+    return;
+  }
+  var isEditMode = !!document.getElementById('rowNumA').value;
+  var btn = document.getElementById('btnA');
+  btn.disabled=true; btn.textContent='檢查中…';
+  if(isEditMode){ doSubmitA(no,'修改'); return; }
+  gasCall(
+    { action:'checkImpoundBeforeSave', no:no },
+    function(res){
+      if(res && res.exists){
+        btn.disabled=false; btn.textContent='✅ 確認送出並存檔';
+        showGuardModal('🚫','編號已存在','編號 <strong>'+no+'</strong> 已有資料（車號：'+(res.carId||'—')+'），請使用「搜尋」帶入舊資料後再進行修改，禁止重複新增。',
+          [{ text:'知道了', cls:'guard-btn-confirm', cb:closeGuardModal }]
+        );
+        return;
+      }
+      doSubmitA(no,'新增');
+    },
+    function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; alert('❌ 重複檢查失敗：'+err.message+'\n請重新嘗試。'); }
+  );
+}
+function doSubmitA(no, logNote){
+  var carId    = document.getElementById('carIdA').value.trim();
+  var moveDate = slashToISO(document.getElementById('moveDateA').value);
+  var cType    = getRadioVal('ctype');
+  var btn      = document.getElementById('btnA');
+  btn.disabled=true; btn.textContent='處理中…';
+  setProgA(5,'① 儲存文字資料…');
+  var td = {
+    type:'A', rowNum: document.getElementById('rowNumA').value,
+    no:no, moveDate:moveDate, carId:carId,
+    owner:       document.getElementById('ownerA').value,
+    carType:     fmtCheck(['汽車','機車','微電車'], cType),
+    office:      document.getElementById('officeA').value,
+    ticketId:    document.getElementById('ticketIdA').value,
+    law:         fmtCheck(['12條','21條','35條酒駕','35條毒駕'], getCheckVal('law')),
+    officer:     document.getElementById('officerA').value,
+    plateStatus: document.getElementById('plateStatusA').value,
+    inDate:      slashToISO(document.getElementById('inDateA').value),
+    logNote:     logNote || '新增'
+  };
+  gasCall({action:'saveTextData', data:td},
+    function(res){
+      var sr = res.row;
+      setProgA(25,'② 上傳扣車單照片…');
+      doUploadPhoto('impound', carId, no, function(iu){
+        setProgA(60,'③ 上傳罰單照片…');
+        doUploadPhoto('ticket', carId, no, function(tu){
+          setProgA(85,'④ 寫入照片連結…');
+          gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu},
+            function(){ setProgA(100,'✅ 完成！'); showRowConfirm(sr); },
+            function(){ setProgA(100,'⚠️ 連結寫入失敗'); showRowConfirm(sr); }
+          );
+        });
+      });
+    },
+    function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgA(); alert('❌ '+err.message); }
+  );
+}
+function doUploadPhoto(key, carId, no, cb){
+  if(!photos[key]){ cb(driveUrls[key]||''); return; }
+  gasCall({action:'uploadPhoto', base64:photos[key], key:key, carId:carId, no:no},
+    function(res){ cb((res&&res.url)||''); },
+    function(){ cb(''); }
+  );
+}
+function resetA(){
+  ['noA','carIdA','ownerA','officeA','ticketIdA','officerA','plateStatusA'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  document.getElementById('moveDateA').value = todaySlash();
+  document.getElementById('inDateA').value   = '';
+  document.querySelectorAll('input[name="ctype"],input[name="law"]').forEach(function(i){ i.checked=false; });
+  refreshCarChips(); refreshLawChips();
+  ['Impound','Ticket'].forEach(function(k){
+    var lk=k.toLowerCase(); photos[lk]=null; driveUrls[lk]='';
+    document.getElementById('prev'+k).src=''; document.getElementById('prev'+k).style.display='none';
+    document.getElementById('vlnk'+k).style.display='none';
+    document.getElementById('stat'+k).className='photo-stat'; document.getElementById('stat'+k).textContent='尚未選擇';
+    document.getElementById('btn'+k).textContent='🖼️ 選取照片'; document.getElementById('btn'+k).classList.remove('uploaded');
+    document.getElementById('file'+k).value='';
+  });
+  document.getElementById('rowNumA').value   = '';
+  document.getElementById('editMsgA').style.display = 'none';
+  document.getElementById('searchNoA').value   = '';
+  document.getElementById('searchCarIdA').value = '';
+  document.getElementById('carIdResults').style.display = 'none';
+  document.getElementById('carIdResults').innerHTML = '';
+  _carIdRows = [];
+  document.getElementById('btnA').disabled    = false;
+  document.getElementById('btnA').textContent = '✅ 確認送出並存檔';
+  var badge = document.getElementById('rowBadgeA');
+  badge.textContent = '';
+  badge.classList.remove('show');
+  hideProgA();
+}
+function setProgA(p,t){ document.getElementById('progA').style.display='block'; document.getElementById('progA-fill').style.width=p+'%'; document.getElementById('progA-text').textContent=t; }
+function hideProgA(){ document.getElementById('progA').style.display='none'; }
+
 // ══ 快篩搜尋 ══
 function doSearchB(){
   var no = document.getElementById('searchNoB').value.trim();
@@ -772,78 +863,35 @@ function doSearchB(){
   );
 }
 
-// ══ 防呆 Modal ══
-function showGuardModal(icon, title, msg, btns){
-  document.getElementById('guardIcon').textContent  = icon;
-  document.getElementById('guardTitle').textContent = title;
-  document.getElementById('guardMsg').innerHTML     = msg;
-  var btnsEl = document.getElementById('guardBtns');
-  btnsEl.innerHTML = '';
-  btns.forEach(function(b){
-    var el = document.createElement('button');
-    el.className   = b.cls;
-    el.textContent = b.text;
-    el.onclick     = b.cb;
-    btnsEl.appendChild(el);
-  });
-  document.getElementById('guardModal').classList.add('show');
-}
-function closeGuardModal(){
-  document.getElementById('guardModal').classList.remove('show');
-}
-
-// ★ 新增：紙本列號彈窗
-function showRowConfirm(sheetRow){
-  var paperRow = sheetRow - 1;
-  document.getElementById('rowConfirmNum').textContent = paperRow + ' 列';
-  document.getElementById('rowConfirmNumInline').textContent = paperRow;
-  var modal = document.getElementById('rowConfirmModal');
-  modal.style.display = 'flex';
-}
-function closeRowConfirm(){
-  document.getElementById('rowConfirmModal').style.display = 'none';
-  resetA();
-}
-
 // ══ 快篩送出 ══
 function submitB(){
   var reagentNo = document.getElementById('reagentNoB').value.trim();
   var operator  = document.getElementById('operatorB').value.trim();
   if(!reagentNo){ alert('請輸入試劑編號'); return; }
   if(!operator) { alert('請填寫操作人員'); return; }
-  if(_isSearchMode){
-    doSubmitB(reagentNo, operator, '搜尋帶入後更正');
-    return;
-  }
+  if(_isSearchMode){ doSubmitB(reagentNo, operator, '搜尋帶入後更正'); return; }
   var btn = document.getElementById('btnB');
-  btn.disabled = true; btn.textContent = '檢查中…';
+  btn.disabled=true; btn.textContent='檢查中…';
   gasCall(
-    { action: 'checkReagentBeforeSave', reagentNo: reagentNo },
+    { action:'checkReagentBeforeSave', reagentNo:reagentNo },
     function(res){
       if(res && res.exists){
         var hasName     = !!(res.name     && String(res.name).trim());
         var hasIdno     = !!(res.idno     && String(res.idno).trim());
         var hasOperator = !!(res.operator && String(res.operator).trim());
         if(hasName && hasIdno){
-          btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
-          showGuardModal(
-            '🚫', '禁止覆蓋',
-            '試劑編號 <strong>' + reagentNo + '</strong> 資料完整，如需更正，請先使用「搜尋」帶入原資料後再進行更正。',
-            [{ text:'知道了', cls:'guard-btn-confirm', cb: closeGuardModal }]
+          btn.disabled=false; btn.textContent='✅ 確認送出並存檔';
+          showGuardModal('🚫','禁止覆蓋','試劑編號 <strong>'+reagentNo+'</strong> 資料完整，如需更正，請先使用「搜尋」帶入原資料後再進行更正。',
+            [{ text:'知道了', cls:'guard-btn-confirm', cb:closeGuardModal }]
           );
           return;
         }
         if(hasOperator){
-          btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
-          showGuardModal(
-            '⚠️', '請確認覆蓋',
-            '試劑編號 <strong>' + reagentNo + '</strong> 目前由「<strong>' + String(res.operator).trim() + '</strong>」領用中，請確認是否覆蓋。',
+          btn.disabled=false; btn.textContent='✅ 確認送出並存檔';
+          showGuardModal('⚠️','請確認覆蓋','試劑編號 <strong>'+reagentNo+'</strong> 目前由「<strong>'+String(res.operator).trim()+'</strong>」領用中，請確認是否覆蓋。',
             [
-              { text:'確認覆蓋', cls:'guard-btn-confirm', cb: function(){
-                  closeGuardModal();
-                  doSubmitB(reagentNo, operator, '確認覆蓋原領用人：' + String(res.operator).trim());
-              }},
-              { text:'取消操作', cls:'guard-btn-cancel', cb: closeGuardModal }
+              { text:'確認覆蓋', cls:'guard-btn-confirm', cb:function(){ closeGuardModal(); doSubmitB(reagentNo, operator, '確認覆蓋原領用人：'+String(res.operator).trim()); }},
+              { text:'取消操作', cls:'guard-btn-cancel',  cb:closeGuardModal }
             ]
           );
           return;
@@ -851,10 +899,7 @@ function submitB(){
       }
       doSubmitB(reagentNo, operator, '正常儲存');
     },
-    function(err){
-      btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
-      alert('❌ 防呆檢查失敗：' + err.message + '\n請重新嘗試。');
-    }
+    function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; alert('❌ 防呆檢查失敗：'+err.message+'\n請重新嘗試。'); }
   );
 }
 function doSubmitB(reagentNo, operator, overrideNote){
@@ -864,12 +909,12 @@ function doSubmitB(reagentNo, operator, overrideNote){
     qty:          1,
     overrideNote: overrideNote || '正常儲存',
     records: [{
-      date:  slashToISO(document.getElementById('tdB').value),
-      time:  document.getElementById('ttB').value,
-      name:  document.getElementById('tnB').value,
-      idno:  document.getElementById('tiB').value,
-      crime: document.getElementById('tcrB').value,
-      result:getResultStr()
+      date:   slashToISO(document.getElementById('tdB').value),
+      time:   document.getElementById('ttB').value,
+      name:   document.getElementById('tnB').value,
+      idno:   document.getElementById('tiB').value,
+      crime:  document.getElementById('tcrB').value,
+      result: getResultStr()
     }],
     operator: operator
   };
@@ -877,304 +922,76 @@ function doSubmitB(reagentNo, operator, overrideNote){
   btn.disabled=true; btn.textContent='儲存中…';
   setProgB(20,'寫入資料中…');
   gasCall({action:'saveScreeningData', data:payload},
-    function(res){
-      setProgB(100,'✅ 存檔完成！');
-      setTimeout(resetB, 900);
-    },
+    function(){ setProgB(100,'✅ 存檔完成！'); setTimeout(resetB, 900); },
     function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgB(); alert('❌ '+err.message); }
   );
 }
 function resetB(){
-  document.getElementById('reagentNoB').value  = '';
-  document.getElementById('tdB').value         = todaySlash();
-  var _now = new Date();
-  document.getElementById('ttB').value         = ('0'+_now.getHours()).slice(-2)+':'+('0'+_now.getMinutes()).slice(-2);
-  document.getElementById('tnB').value         = '';
-  document.getElementById('tiB').value         = '';
-  document.getElementById('tcrB').value        = '';
-  document.getElementById('rothB').value       = '';
-  document.getElementById('operatorB').value   = '';
-  document.getElementById('rowNumB').value     = '';
-  document.getElementById('searchNoB').value   = '';
+  document.getElementById('reagentNoB').value = '';
+  document.getElementById('tdB').value        = todaySlash();
+  setNowTime();
+  document.getElementById('tnB').value        = '';
+  document.getElementById('tiB').value        = '';
+  document.getElementById('tcrB').value       = '';
+  document.getElementById('rothB').value      = '';
+  document.getElementById('operatorB').value  = '';
+  document.getElementById('rowNumB').value    = '';
+  document.getElementById('searchNoB').value  = '';
   document.getElementById('editMsgB').style.display = 'none';
-  document.getElementById('btnB').disabled     = false;
-  document.getElementById('btnB').textContent  = '✅ 確認送出並存檔';
+  document.getElementById('btnB').disabled    = false;
+  document.getElementById('btnB').textContent = '✅ 確認送出並存檔';
   _isSearchMode = false;
   restoreResult('');
   hideProgB();
 }
-function setProgB(p,t){document.getElementById('progB').style.display='block';document.getElementById('progB-fill').style.width=p+'%';document.getElementById('progB-text').textContent=t;}
-function hideProgB(){document.getElementById('progB').style.display='none';}
+function setProgB(p,t){ document.getElementById('progB').style.display='block'; document.getElementById('progB-fill').style.width=p+'%'; document.getElementById('progB-text').textContent=t; }
+function hideProgB(){ document.getElementById('progB').style.display='none'; }
 
 // ══ 領用狀況 Modal ══
 function openUsageModal(){
   document.getElementById('usageModal').classList.add('show');
   document.getElementById('usageBody').innerHTML = '<div class="usage-loading">載入中…</div>';
   gasCall(
-    { action: 'getUsageStatus', limit: 30 },
+    { action:'getUsageStatus', limit:30 },
     function(res){ renderUsage(res.rows || []); },
-    function(err){
-      document.getElementById('usageBody').innerHTML =
-        '<div class="usage-empty">❌ 載入失敗：' + err.message + '</div>';
-    }
+    function(err){ document.getElementById('usageBody').innerHTML = '<div class="usage-empty">❌ 載入失敗：'+err.message+'</div>'; }
   );
 }
-function closeUsageModal(){
-  document.getElementById('usageModal').classList.remove('show');
-}
+function closeUsageModal(){ document.getElementById('usageModal').classList.remove('show'); }
 function renderUsage(rows){
   var body = document.getElementById('usageBody');
-  if(!rows || rows.length === 0){ body.innerHTML = '<div class="usage-empty">目前無資料</div>'; return; }
+  if(!rows || rows.length===0){ body.innerHTML='<div class="usage-empty">目前無資料</div>'; return; }
   var html = '';
-  for(var i = 0; i < rows.length; i++){
-    var r = rows[i];
+  for(var i=0; i<rows.length; i++){
+    var r=rows[i];
     var no=String(r.reagentNo||'').trim(), operator=String(r.operator||'').trim();
     var name=String(r.name||'').trim(), idno=String(r.idno||'').trim();
     var rowClass, badgeClass, badgeText, operatorText, subText;
     if(!operator){
-      rowClass='usage-row idle'; badgeClass='usage-badge idle'; badgeText='在所內';
-      operatorText='（未指定）'; subText='';
+      rowClass='usage-row idle'; badgeClass='usage-badge idle'; badgeText='在所內'; operatorText='（未指定）'; subText='';
     } else if(!name||!idno){
-      rowClass='usage-row warn'; badgeClass='usage-badge warn'; badgeText='資料不全';
-      operatorText=operator;
+      rowClass='usage-row warn'; badgeClass='usage-badge warn'; badgeText='資料不全'; operatorText=operator;
       var missing=[]; if(!name) missing.push('姓名'); if(!idno) missing.push('身分證');
       subText='缺：'+missing.join('、');
     } else {
-      rowClass='usage-row ok'; badgeClass='usage-badge ok'; badgeText='正常';
-      operatorText=operator; subText=name+'　'+idno;
+      rowClass='usage-row ok'; badgeClass='usage-badge ok'; badgeText='正常'; operatorText=operator; subText=name+'　'+idno;
     }
     html+='<div class="'+rowClass+'"><div class="usage-no">'+(no||'-')+'</div><div class="usage-info"><div class="usage-operator">'+operatorText+'</div>'+(subText?'<div class="usage-sub">'+subText+'</div>':'')+'</div><div class="'+badgeClass+'">'+badgeText+'</div></div>';
   }
   body.innerHTML = html;
 }
 
-// ══ 扣車搜尋（扣車單號）══
-function doSearchA(){
-  var no=document.getElementById('searchNoA').value.trim();
-  if(!no){showErr('searchErrorA','請輸入編號');return;}
-  hideErr('searchErrorA');
-  var btn=document.getElementById('searchBtnA');
-  btn.disabled=true; btn.textContent='搜尋中…';
-  gasCall({action:'searchData', no:no, type:'A'},
-    function(res){
-      btn.disabled=false; btn.textContent='搜尋';
-      if(!res){showErr('searchErrorA','查無此編號');return;}
-      loadSearchResult(res);
-      alert('資料已載入！（修改模式）');
-    },
-    function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
-  );
-}
-
-// ★ 新增：車號搜尋
-function doSearchByCar(){
-  var carId = document.getElementById('searchCarIdA').value.trim();
-  if(!carId){ showErr('searchErrorA','請輸入車號'); return; }
-  hideErr('searchErrorA');
-  document.getElementById('carIdResults').style.display = 'none';
-  document.getElementById('carIdResults').innerHTML = '';
-  var btn = document.getElementById('searchBtnCar');
-  btn.disabled = true; btn.textContent = '搜尋中…';
-  gasCall({action:'searchByCarId', carId:carId},
-    function(res){
-      btn.disabled=false; btn.textContent='搜尋';
-      if(!res || !res.rows || res.rows.length===0){
-        showErr('searchErrorA','查無此車號：'+carId);
-        return;
-      }
-      if(res.rows.length === 1){
-        // 只有一筆，直接帶入
-        loadSearchResult(res.rows[0]);
-        alert('資料已載入！（修改模式）');
-        return;
-      }
-      // 多筆 → 顯示選單
-      renderCarIdResults(res.rows);
-    },
-    function(err){ btn.disabled=false; btn.textContent='搜尋'; showErr('searchErrorA','連線錯誤：'+err.message); }
-  );
-}
-
-// ★ 新增：多筆車號結果渲染
-function renderCarIdResults(rows){
-  var el = document.getElementById('carIdResults');
-  el.style.display = 'block';
-  var html = '<div style="font-size:12px;color:#666;margin-bottom:6px;">找到 '+rows.length+' 筆，請選擇：</div>';
-  for(var i=0;i<rows.length;i++){
-    var r = rows[i];
-    var no    = r.values[1] || '—';
-    var mdate = toDateInput(r.values[2]||'') || '—';
-    var owner = r.values[4] || '—';
-    var paperRow = r.row - 1;
-    html += '<div class="carid-result-item" onclick="selectCarIdResult('+i+')">'
-          + '<div class="carid-result-no">第 '+paperRow+' 列　扣車單號：'+no+'</div>'
-          + '<div class="carid-result-sub">車主：'+owner+'　移置日期：'+mdate+'</div>'
-          + '</div>';
-  }
-  el.innerHTML = html;
-  el._rows = rows;
-}
-function selectCarIdResult(idx){
-  var rows = document.getElementById('carIdResults')._rows;
-  if(!rows || !rows[idx]) return;
-  document.getElementById('carIdResults').style.display = 'none';
-  loadSearchResult(rows[idx]);
-  alert('資料已載入！（修改模式）');
-}
-
-// ★ 新增：共用帶入函式（單號搜尋和車號搜尋都用這個）
-function loadSearchResult(res){
-  var paperRow = res.row - 1;
-  document.getElementById('rowNumA').value      = res.row;
-  document.getElementById('editMsgA').style.display = 'block';
-  document.getElementById('noA').value          = res.values[1]  || '';
-  document.getElementById('moveDateA').value    = toDateInput(res.values[2]||'');
-  document.getElementById('carIdA').value       = res.values[3]  || '';
-  document.getElementById('ownerA').value       = res.values[4]  || '';
-  restoreChecks('ctype', res.values[5]);
-  document.getElementById('officeA').value      = res.values[6]  || '';
-  document.getElementById('ticketIdA').value    = res.values[7]  || '';
-  restoreChecks('law', res.values[8]);
-  document.getElementById('officerA').value     = res.values[9]  || '';
-  document.getElementById('plateStatusA').value = res.values[10] || '';
-  document.getElementById('inDateA').value      = toDateInput(res.values[11]||'');
-  loadDrivePhoto(res.values[12],'impound');
-  loadDrivePhoto(res.values[13],'ticket');
-  // ★ 顯示紙本列號 badge
-  var badge = document.getElementById('rowBadgeA');
-  badge.textContent = '📋 紙本第 ' + paperRow + ' 列';
-  badge.classList.add('show');
-}
-
-// ══ 扣車送出 ══
-function submitA(){
-  var no=document.getElementById('noA').value.trim();
-  var carId=document.getElementById('carIdA').value.trim();
-  var moveDate=slashToISO(document.getElementById('moveDateA').value);
-  var cType=getRadioVal('ctype');
-  if(!no)      { alert('請填寫編號'); return; }
-  if(!carId)   { alert('請填寫車號'); return; }
-  if(!moveDate){ alert('請填寫移置日期'); return; }
-  if(!cType)   { alert('請選擇車種'); return; }
-  if(!/^\d{8,9}$/.test(no)){
-    showGuardModal('⚠️','編號格式錯誤','編號必須為 <strong>8～9碼數字</strong>，目前輸入：「'+no+'」，請確認後重新輸入。',
-      [{ text:'知道了', cls:'guard-btn-confirm', cb: function(){ closeGuardModal(); document.getElementById('noA').focus(); } }]
-    );
-    return;
-  }
-  var isEditMode = !!document.getElementById('rowNumA').value;
-  var btn = document.getElementById('btnA');
-  btn.disabled = true; btn.textContent = '檢查中…';
-  if(isEditMode){ doSubmitA(no, '修改'); return; }
-  gasCall(
-    { action: 'checkImpoundBeforeSave', no: no },
-    function(res){
-      if(res && res.exists){
-        btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
-        showGuardModal('🚫','編號已存在','編號 <strong>'+no+'</strong> 已有資料（車號：'+(res.carId||'—')+'），請使用「搜尋」帶入舊資料後再進行修改，禁止重複新增。',
-          [{ text:'知道了', cls:'guard-btn-confirm', cb: closeGuardModal }]
-        );
-        return;
-      }
-      doSubmitA(no, '新增');
-    },
-    function(err){
-      btn.disabled = false; btn.textContent = '✅ 確認送出並存檔';
-      alert('❌ 重複檢查失敗：' + err.message + '\n請重新嘗試。');
-    }
-  );
-}
-function doSubmitA(no, logNote){
-  var carId=document.getElementById('carIdA').value.trim();
-  var moveDate=slashToISO(document.getElementById('moveDateA').value);
-  var cType=getRadioVal('ctype');
-  var btn=document.getElementById('btnA');
-  btn.disabled=true; btn.textContent='處理中…';
-  setProgA(5,'① 儲存文字資料…');
-  var td={
-    type:'A', rowNum: document.getElementById('rowNumA').value,
-    no: no, moveDate: moveDate, carId: carId,
-    owner:       document.getElementById('ownerA').value,
-    carType:     fmtCheck(['汽車','機車','微電車'], cType),
-    office:      document.getElementById('officeA').value,
-    ticketId:    document.getElementById('ticketIdA').value,
-    law:         fmtCheck(['12條','21條','35條酒駕','35條毒駕'], getCheckVal('law')),
-    officer:     document.getElementById('officerA').value,
-    plateStatus: document.getElementById('plateStatusA').value,
-    inDate:      slashToISO(document.getElementById('inDateA').value),
-    logNote:     logNote || '新增'
-  };
-  gasCall({action:'saveTextData', data:td},
-    function(res){
-      var sr=res.row; setProgA(25,'② 上傳扣車單照片…');
-      doUploadPhoto('impound', carId, no, function(iu){
-        setProgA(60,'③ 上傳罰單照片…');
-        doUploadPhoto('ticket', carId, no, function(tu){
-          setProgA(85,'④ 寫入照片連結…');
-          gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu},
-            function(){
-              setProgA(100,'✅ 完成！');
-              // ★ 顯示紙本列號彈窗，不再直接 resetA
-              showRowConfirm(sr);
-            },
-            function(){
-              setProgA(100,'⚠️ 連結寫入失敗');
-              showRowConfirm(sr);
-            }
-          );
-        });
-      });
-    },
-    function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgA(); alert('❌ '+err.message); }
-  );
-}
-function doUploadPhoto(key,carId,no,cb){
-  if(!photos[key]){ cb(driveUrls[key]||''); return; }
-  gasCall({action:'uploadPhoto', base64:photos[key], key:key, carId:carId, no:no},
-    function(res){ cb((res&&res.url)||''); },
-    function(){ cb(''); }
-  );
-}
-function resetA(){
-  ['noA','carIdA','ownerA','officeA','ticketIdA','officerA','plateStatusA'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('moveDateA').value=todaySlash();
-  document.getElementById('inDateA').value='';
-  document.querySelectorAll('input[name="ctype"],input[name="law"]').forEach(function(i){i.checked=false;});
-  refreshCarChips(); refreshLawChips();
-  ['Impound','Ticket'].forEach(function(k){
-    var lk=k.toLowerCase(); photos[lk]=null; driveUrls[lk]='';
-    document.getElementById('prev'+k).src=''; document.getElementById('prev'+k).style.display='none';
-    document.getElementById('vlnk'+k).style.display='none';
-    document.getElementById('stat'+k).className='photo-stat'; document.getElementById('stat'+k).textContent='尚未選擇';
-    document.getElementById('btn'+k).textContent='🖼️ 選取照片'; document.getElementById('btn'+k).classList.remove('uploaded');
-    document.getElementById('file'+k).value='';
-  });
-  document.getElementById('rowNumA').value=''; document.getElementById('editMsgA').style.display='none';
-  document.getElementById('searchNoA').value='';
-  document.getElementById('searchCarIdA').value='';
-  document.getElementById('carIdResults').style.display='none';
-  document.getElementById('carIdResults').innerHTML='';
-  document.getElementById('btnA').disabled=false; document.getElementById('btnA').textContent='✅ 確認送出並存檔';
-  // ★ 清除列號 badge
-  var badge = document.getElementById('rowBadgeA');
-  badge.textContent = '';
-  badge.classList.remove('show');
-  hideProgA();
-}
-function setProgA(p,t){document.getElementById('progA').style.display='block';document.getElementById('progA-fill').style.width=p+'%';document.getElementById('progA-text').textContent=t;}
-function hideProgA(){document.getElementById('progA').style.display='none';}
-
 // ══ 照片 ══
-function handlePhoto(fid,pid,sid,bid,vid,key){
-  var file=document.getElementById(fid).files[0]; if(!file) return;
-  var statEl=document.getElementById(sid); statEl.className='photo-stat'; statEl.textContent='壓縮中…';
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var img=new Image();
-    img.onload=function(){
-      var MAX=1400,w=img.width,h=img.height;
+function handlePhoto(fid, pid, sid, bid, vid, key){
+  var file = document.getElementById(fid).files[0]; if(!file) return;
+  var statEl = document.getElementById(sid); statEl.className='photo-stat'; statEl.textContent='壓縮中…';
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      var MAX=1400, w=img.width, h=img.height;
       if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>=w&&h>MAX){w=Math.round(w*MAX/h);h=MAX;}
-      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
       cv.getContext('2d').drawImage(img,0,0,w,h);
       var b64=cv.toDataURL('image/jpeg',0.72); var kb=Math.round(b64.length*0.75/1024);
       photos[key]=b64;
@@ -1183,13 +1000,13 @@ function handlePhoto(fid,pid,sid,bid,vid,key){
       document.getElementById(bid).textContent='🔄 重拍 / 換圖'; document.getElementById(bid).classList.add('uploaded');
       statEl.className='photo-stat ok'; statEl.textContent='✅ '+w+'×'+h+' · '+kb+'KB';
     };
-    img.onerror=function(){statEl.className='photo-stat err';statEl.textContent='❌ 圖片無法讀取';};
+    img.onerror=function(){ statEl.className='photo-stat err'; statEl.textContent='❌ 圖片無法讀取'; };
     img.src=e.target.result;
   };
-  reader.onerror=function(){statEl.className='photo-stat err';statEl.textContent='❌ 讀取失敗';};
+  reader.onerror=function(){ statEl.className='photo-stat err'; statEl.textContent='❌ 讀取失敗'; };
   reader.readAsDataURL(file);
 }
-function loadDrivePhoto(url,key){
+function loadDrivePhoto(url, key){
   if(!url||typeof url!=='string'||!url.startsWith('http')) return;
   driveUrls[key]=url;
   var K=key.charAt(0).toUpperCase()+key.slice(1);
@@ -1197,33 +1014,35 @@ function loadDrivePhoto(url,key){
   document.getElementById('btn'+K).textContent='🔄 重拍 / 換圖'; document.getElementById('btn'+K).classList.add('uploaded');
   document.getElementById('stat'+K).className='photo-stat ok'; document.getElementById('stat'+K).textContent='✅ 已有照片';
   var m=url.match(/\/d\/([^/?#]+)/);
-  if(m){var prev=document.getElementById('prev'+K); prev.src='https://drive.google.com/uc?export=view&id='+m[1]; prev.style.display='block'; prev.onerror=function(){prev.style.display='none';};}
+  if(m){ var prev=document.getElementById('prev'+K); prev.src='https://drive.google.com/uc?export=view&id='+m[1]; prev.style.display='block'; prev.onerror=function(){prev.style.display='none';}; }
 }
 function openLB(key){
   lbKey=key;
-  if(photos[key]){document.getElementById('lbImg').src=photos[key];document.getElementById('lightbox').classList.add('show');}
-  else if(driveUrls[key]){window.open(driveUrls[key],'_blank');}
+  if(photos[key]){ document.getElementById('lbImg').src=photos[key]; document.getElementById('lightbox').classList.add('show'); }
+  else if(driveUrls[key]){ window.open(driveUrls[key],'_blank'); }
 }
-function closeLB(){document.getElementById('lightbox').classList.remove('show');}
-document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLB();});
+function closeLB(){ document.getElementById('lightbox').classList.remove('show'); }
+document.getElementById('lightbox').addEventListener('click',function(e){ if(e.target===this) closeLB(); });
 function dlPhoto(){
-  if(!photos[lbKey])return;
+  if(!photos[lbKey]) return;
   var n=(lbKey==='impound'?'扣車單_':'罰單_')+(document.getElementById('carIdA').value||'photo')+'.jpg';
-  var a=document.createElement('a');a.href=photos[lbKey];a.download=n;a.click();
+  var a=document.createElement('a'); a.href=photos[lbKey]; a.download=n; a.click();
 }
 function sharePhoto(){
-  if(photos[lbKey]){fetch(photos[lbKey]).then(function(r){return r.blob();}).then(function(blob){
-    var n=(lbKey==='impound'?'扣車單_':'罰單_')+(document.getElementById('carIdA').value||'photo')+'.jpg';
-    var f=new File([blob],n,{type:'image/jpeg'});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:n});}
-    else{dlPhoto();alert('裝置不支援直接分享，已改為下載。');}
-  });}else if(driveUrls[lbKey]){window.open(driveUrls[lbKey],'_blank');}
+  if(photos[lbKey]){
+    fetch(photos[lbKey]).then(function(r){ return r.blob(); }).then(function(blob){
+      var n=(lbKey==='impound'?'扣車單_':'罰單_')+(document.getElementById('carIdA').value||'photo')+'.jpg';
+      var f=new File([blob],n,{type:'image/jpeg'});
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){ navigator.share({files:[f],title:n}); }
+      else{ dlPhoto(); alert('裝置不支援直接分享，已改為下載。'); }
+    });
+  } else if(driveUrls[lbKey]){ window.open(driveUrls[lbKey],'_blank'); }
 }
 
-function showErr(id,msg){var e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
-function hideErr(id){var e=document.getElementById(id);if(e){e.style.display='none';}}
+function showErr(id,msg){ var e=document.getElementById(id); if(e){ e.textContent=msg; e.style.display='block'; } }
+function hideErr(id){ var e=document.getElementById(id); if(e){ e.style.display='none'; } }
 
-// ══ 列印標籤：A5 直向，中間虛線，左右各一份 ══
+// ══ 列印標籤 ══
 function printLabel(){
   var carId    = document.getElementById('carIdA').value.trim();
   var law      = getCheckVal('law');
@@ -1231,91 +1050,35 @@ function printLabel(){
   var cType    = getRadioVal('ctype');
   if(!carId) return alert('請先輸入車號');
   if(!cType) return alert('請先選擇車種');
-
   var block =
-    '<div class="lb">'
-    +'<div class="lb-title">車輛保管標籤</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">車號</div>'
-    +'<div class="lb-val">'+carId+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">車種</div>'
-    +'<div class="lb-val">'+cType+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">違規法條</div>'
-    +'<div class="lb-val lb-law">'+(law||'（未選擇）')+'</div>'
-    +'</div>'
-    +'<div class="lb-section">'
-    +'<div class="lb-lbl">移置日期</div>'
-    +'<div class="lb-val">'+moveDate+'</div>'
-    +'</div>'
+    '<div class="lb"><div class="lb-title">車輛保管標籤</div>'
+    +'<div class="lb-section"><div class="lb-lbl">車號</div><div class="lb-val">'+carId+'</div></div>'
+    +'<div class="lb-section"><div class="lb-lbl">車種</div><div class="lb-val">'+cType+'</div></div>'
+    +'<div class="lb-section"><div class="lb-lbl">違規法條</div><div class="lb-val lb-law">'+(law||'（未選擇）')+'</div></div>'
+    +'<div class="lb-section"><div class="lb-lbl">移置日期</div><div class="lb-val">'+moveDate+'</div></div>'
     +'<div class="lb-plate">'+carId+'</div>'
-    +'<div class="lb-foot">'
-    +'<div class="lb-lbl">已郵寄資料予拖吊場日期</div>'
-    +'<div class="lb-blank">　　年　　月　　日</div>'
-    +'</div>'
-    +'</div>';
-
+    +'<div class="lb-foot"><div class="lb-lbl">已郵寄資料予拖吊場日期</div><div class="lb-blank">　　年　　月　　日</div></div></div>';
   var css =
-    '@media print{ @page{ size:148mm 210mm; margin:0; } }'
-    +'*{ box-sizing:border-box; margin:0; padding:0; }'
-    +'body{ font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif; }'
-    +'.page{ width:148mm; height:210mm; display:flex; flex-direction:row; overflow:hidden; }'
-    +'.lb{'
-    +'  width:73mm; height:210mm; flex-shrink:0;'
-    +'  padding:8mm 5mm 8mm 5mm;'
-    +'  display:flex; flex-direction:column;'
-    +'}'
-    +'.lb-title{'
-    +'  font-size:15px; font-weight:bold; text-align:center;'
-    +'  letter-spacing:2px; padding-bottom:5px;'
-    +'  border-bottom:2px solid #000; margin-bottom:6mm;'
-    +'}'
-    +'.lb-section{'
-    +'  margin-bottom:5mm;'
-    +'}'
-    +'.lb-lbl{'
-    +'  font-size:9px; color:#555; letter-spacing:1px; margin-bottom:1mm;'
-    +'}'
-    +'.lb-plate{'
-    +'  flex:1; display:flex; align-items:center; justify-content:center;'
-    +'  writing-mode:vertical-rl; text-orientation:mixed;'
-    +'  font-size:52px; font-weight:900; letter-spacing:6px;'
-    +'  color:#000; line-height:1;'
-    +'}'
-    +'.lb-val{'
-    +'  font-size:20px; font-weight:bold;'
-    +'  letter-spacing:1px; line-height:1.2;'
-    +'  border-bottom:1.5px solid #000; padding-bottom:1mm;'
-    +'  word-break:break-all;'
-    +'}'
-    +'.lb-law{ font-size:16px; }'
-    +'.lb-foot{'
-    +'  margin-top:auto;'
-    +'  border-top:1.5px dashed #000;'
-    +'  padding-top:4mm;'
-    +'}'
-    +'.lb-blank{'
-    +'  font-size:16px; margin-top:3mm;'
-    +'  letter-spacing:3px;'
-    +'}';
-
+    '@media print{@page{size:148mm 210mm;margin:0;}}'
+    +'*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;}'
+    +'.page{width:148mm;height:210mm;display:flex;flex-direction:row;overflow:hidden;}'
+    +'.lb{width:73mm;height:210mm;flex-shrink:0;padding:8mm 5mm;display:flex;flex-direction:column;}'
+    +'.lb-title{font-size:15px;font-weight:bold;text-align:center;letter-spacing:2px;padding-bottom:5px;border-bottom:2px solid #000;margin-bottom:6mm;}'
+    +'.lb-section{margin-bottom:5mm;}'
+    +'.lb-lbl{font-size:9px;color:#555;letter-spacing:1px;margin-bottom:1mm;}'
+    +'.lb-plate{flex:1;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;font-size:52px;font-weight:900;letter-spacing:6px;color:#000;line-height:1;}'
+    +'.lb-val{font-size:20px;font-weight:bold;letter-spacing:1px;line-height:1.2;border-bottom:1.5px solid #000;padding-bottom:1mm;word-break:break-all;}'
+    +'.lb-law{font-size:16px;}'
+    +'.lb-foot{margin-top:auto;border-top:1.5px dashed #000;padding-top:4mm;}'
+    +'.lb-blank{font-size:16px;margin-top:3mm;letter-spacing:3px;}';
   var pw = window.open('','_blank');
-  pw.document.write(
-    '<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    +'<style>'+css+'</style></head><body>'
-    +'<div class="page">'
-    + block
-    +'<svg width="2mm" height="210mm" style="flex-shrink:0;overflow:visible;">'
-    +'<line x1="1" y1="0" x2="1" y2="793" stroke="#333" stroke-width="2" stroke-dasharray="8,6" vector-effect="non-scaling-stroke"/>'
-    +'</svg>'
-    + block
-    +'</div>'
+  pw.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+css+'</style></head><body>'
+    +'<div class="page">'+block
+    +'<svg width="2mm" height="210mm" style="flex-shrink:0;overflow:visible;"><line x1="1" y1="0" x2="1" y2="793" stroke="#333" stroke-width="2" stroke-dasharray="8,6" vector-effect="non-scaling-stroke"/></svg>'
+    +block+'</div>'
     +'<script>window.onload=function(){window.print();setTimeout(function(){window.close();},600);}<\/script>'
-    +'</body></html>'
-  );
+    +'</body></html>');
   pw.document.close();
 }
 </script>

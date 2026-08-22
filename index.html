@@ -100,6 +100,7 @@
     .chip-label { min-height: 44px; }
     .time-wrap { display: flex; gap: 6px; align-items: center; }
     .time-wrap .field-input { flex: 1; text-align: center; letter-spacing: 2px; font-weight: bold; }
+    #violationTimeA { letter-spacing: 0.5px; font-size: 15px !important; font-weight: bold; }
     .time-now-btn { flex-shrink: 0; padding: 0 10px; height: 44px; background: #17a2b8; color: #fff; border: none; border-radius: 10px; font-size: 15px !important; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     .prog-text { font-size: 14px !important; }
     .field-label { text-transform: none; letter-spacing: 0; font-size: 13px !important; }
@@ -281,10 +282,10 @@
     </div>
     <div class="field-row">
       <div class="field">
-        <span class="field-label">違規時間</span>
+        <span class="field-label">違規時間（民國年月日 時分）</span>
         <div class="time-wrap">
-          <input class="field-input" type="text" id="violationTimeA" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="fmtTime(this)">
-          <button class="time-now-btn" type="button" onclick="setNowTimeFor('violationTimeA')">🕐 現在</button>
+          <input class="field-input" type="text" id="violationTimeA" placeholder="例：1150814 2050" maxlength="12" inputmode="numeric" oninput="fmtViolationTime(this)">
+          <button class="time-now-btn" type="button" onclick="setNowViolationTime()">🕐 現在</button>
         </div>
       </div>
       <div class="field">
@@ -544,6 +545,21 @@ function setNowTime(){
 function setNowTimeFor(id){
   var now = new Date();
   document.getElementById(id).value = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+}
+// 違規時間專用：民國年月日(7碼) + 空格 + 時分(4碼)，例：1150814 2050
+function fmtViolationTime(el){
+  var v = el.value.replace(/[^0-9]/g,'');
+  if(v.length > 7) v = v.slice(0,7) + ' ' + v.slice(7);
+  el.value = v.slice(0,12);
+}
+function setNowViolationTime(){
+  var now = new Date();
+  var rocY = now.getFullYear() - 1911;
+  var mm = ('0'+(now.getMonth()+1)).slice(-2);
+  var dd = ('0'+now.getDate()).slice(-2);
+  var hh = ('0'+now.getHours()).slice(-2);
+  var mi = ('0'+now.getMinutes()).slice(-2);
+  document.getElementById('violationTimeA').value = rocY + mm + dd + ' ' + hh + mi;
 }
 function todaySlash(){
   var d = new Date();

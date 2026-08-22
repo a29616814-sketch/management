@@ -196,7 +196,7 @@
 
   <div class="import-card">
     <div style="font-size:13px;font-weight:bold;color:#444;">📥 車籍資料匯入</div>
-    <div class="import-desc">在公路監理系統「查車籍」頁面按 Ctrl+A 全選 → Ctrl+C 複製，貼在下方後按「解析並預覽」。系統會列出偵測到的欄位讓你確認，確認後才會真正帶入表單，不會自動覆蓋。</div>
+    <div class="import-desc">在監理站「查車籍」頁面按 Ctrl+A 全選 → Ctrl+C 複製，貼在下方後按「解析並預覽」。系統會列出偵測到的欄位讓你確認，確認後才會真正帶入表單，不會自動覆蓋。</div>
     <div class="field" style="margin-bottom:8px;">
       <textarea class="field-input" id="importRawA" rows="4" placeholder="在這裡貼上查車籍頁面全選複製的內容…"></textarea>
     </div>
@@ -209,6 +209,7 @@
   <input type="hidden" id="colorA_hidden">
   <input type="hidden" id="ccA_hidden">
   <input type="hidden" id="addressA_hidden">
+  <input type="hidden" id="vehicleSubTypeA_hidden">
 
   <div class="card">
     <div class="card-hd">
@@ -902,7 +903,18 @@ function doUploadPhoto(key, carId, no, cb){
 // ══════════════════════════════════════════════
 // ★ 車籍資料匯入（查車籍頁面全選複製 → 解析 → 預覽 → 帶入）
 // ══════════════════════════════════════════════
-var COLOR_LIST_A = ['白','黑','紅','藍','銀','灰','綠','黃','棕','橘','紫','卡其','香檳','原色','銀灰','深藍','淺藍','米','金','珍珠白','消光黑'];
+// 顏色判斷採「結尾比對」而非整字比對，這樣「深灰／淺藍／消光黑／珍珠白」
+// 這類複合色名都能抓到，也能一次抓多個顏色（例：藍 黑 深灰）
+var BASE_COLORS_A = ['白','黑','紅','藍','銀','灰','綠','黃','棕','橘','紫','金','米','卡其','香檳','原色'];
+function _isColorTokenA(t){
+  if(!t) return false;
+  if(BASE_COLORS_A.indexOf(t) !== -1) return true;
+  for(var i=0; i<BASE_COLORS_A.length; i++){
+    var c = BASE_COLORS_A[i];
+    if(t.length > c.length && t.length <= 4 && t.slice(-c.length) === c) return true;
+  }
+  return false;
+}
 
 function _splitCellsA(line){
   if(line.indexOf('\t') !== -1) return line.split('\t');
@@ -913,7 +925,7 @@ function _splitCellsA(line){
 function parseVehicleQueryText(text){
   if(!text) return null;
   var lines = String(text).split(/\r?\n/);
-  var result = { carId:'', owner:'', address:'', brand:'', color:'', cc:'', engineNo:'', office:'', plateStatus:'' };
+  var result = { carId:'', owner:'', address:'', vehicleSubType:'', brand:'', color:'', cc:'', engineNo:'', chassisNo:'', office:'', plateStatus:'' };
   var foundAny = false;
 
   for(var i=0; i<lines.length; i++){
@@ -924,14 +936,15 @@ function parseVehicleQueryText(text){
       for(var j=i+1; j<lines.length; j++){
         if(lines[j].trim()===''){ continue; }
         var cells = _splitCellsA(lines[j]).map(function(c){ return c.trim(); });
-        if(cells[0]){ result.carId  = cells[0]; foundAny = true; }
-        if(cells[1]){ result.owner  = cells[1]; foundAny = true; }
-        if(cells[5]){ result.address = cells[5]; foundAny = true; }
+        if(cells[0]){ result.carId         = cells[0]; foundAny = true; }
+        if(cells[1]){ result.owner         = cells[1]; foundAny = true; }
+        if(cells[2]){ result.vehicleSubType = cells[2]; foundAny = true; }
+        if(cells[5]){ result.address       = cells[5]; foundAny = true; }
         break;
       }
     }
 
-    // 第二張表：廠牌(+顏色) / 出廠年月 / 汽缸數 / 排氣量 / 車身號碼 / 引擎號碼 / 排氣管編號 / 牌照狀態 / 管轄所站
+    // 第二張表：廠牌(+顏色，可能多個) / 出廠年月 / 汽缸數 / 排氣量 / 車身號碼 / 引擎號碼 / 排氣管編號 / 牌照狀態 / 管轄所站
     if(/汽缸數/.test(line) && /排氣量/.test(line)){
       for(var k=i+1; k<lines.length; k++){
         if(lines[k].trim()===''){ continue; }
@@ -939,16 +952,19 @@ function parseVehicleQueryText(text){
         var bc = (cells2[0]||'');
         if(bc){
           var parts = bc.split(/\s+/).filter(Boolean);
-          if(parts.length > 1 && COLOR_LIST_A.indexOf(parts[parts.length-1]) !== -1){
-            result.color = parts.pop();
-            result.brand = parts.join(' ');
-          } else {
-            result.brand = bc;
+          var colors = [];
+          while(parts.length > 1 && _isColorTokenA(parts[parts.length-1])){
+            colors.unshift(parts.pop());
           }
+          result.brand = parts.join(' ');
+          if(colors.length) result.color = colors.join(' ');
           foundAny = true;
         }
         if(cells2[3]){ result.cc          = cells2[3]; foundAny = true; }
-        if(cells2[5]){ result.engineNo    = cells2[5]; foundAny = true; }
+        if(cells2[4]){ result.chassisNo   = cells2[4]; foundAny = true; }
+        // 引擎號碼有些車輛（尤其部分機車）沒有登記，這時改用車身號碼/車架號碼代替
+        var eng = cells2[5] || cells2[4] || '';
+        if(eng){ result.engineNo = eng; foundAny = true; }
         if(cells2[7]){ result.plateStatus = cells2[7]; foundAny = true; }
         if(cells2[8]){ result.office      = cells2[8]; foundAny = true; }
         break;
@@ -994,6 +1010,7 @@ function showImportPreview(parsed){
   addRow('牌照狀態', parsed.plateStatus, curPlate);
   addRow('引擎號碼', parsed.engineNo, curEngine);
   var hiddenBits = [];
+  if(parsed.vehicleSubType) hiddenBits.push('車種：'+parsed.vehicleSubType);
   if(parsed.brand)   hiddenBits.push('廠牌：'+parsed.brand);
   if(parsed.color)   hiddenBits.push('顏色：'+parsed.color);
   if(parsed.cc)      hiddenBits.push('排氣量：'+parsed.cc+'CC');
@@ -1019,7 +1036,8 @@ function applyImportedData(parsed){
   if(parsed.office)      document.getElementById('officeA').value      = parsed.office;
   if(parsed.plateStatus) document.getElementById('plateStatusA').value = parsed.plateStatus;
   if(parsed.engineNo)    document.getElementById('engineNoA').value    = parsed.engineNo;
-  // 廠牌／顏色／排氣量／車主地址：網頁不顯示，先保留於隱藏欄位，送出時用來產生簿冊摘要卡
+  // 車種／廠牌／顏色／排氣量／車主地址：網頁不顯示，先保留於隱藏欄位，送出時用來產生簿冊摘要卡
+  if(parsed.vehicleSubType) document.getElementById('vehicleSubTypeA_hidden').value = parsed.vehicleSubType;
   if(parsed.brand)   document.getElementById('brandA_hidden').value   = parsed.brand;
   if(parsed.color)   document.getElementById('colorA_hidden').value   = parsed.color;
   if(parsed.cc)       document.getElementById('ccA_hidden').value      = parsed.cc;
@@ -1042,6 +1060,7 @@ function buildQData(){
   return JSON.stringify({
     vt: document.getElementById('violationTimeA').value.trim(),
     vl: document.getElementById('violationLocationA').value.trim(),
+    vs: document.getElementById('vehicleSubTypeA_hidden').value.trim(),
     br: document.getElementById('brandA_hidden').value.trim(),
     cc: document.getElementById('ccA_hidden').value.trim(),
     co: document.getElementById('colorA_hidden').value.trim(),
@@ -1053,17 +1072,21 @@ function restoreQData(raw){
   if(raw){ try{ q = JSON.parse(raw) || {}; }catch(ex){ q = {}; } }
   document.getElementById('violationTimeA').value     = q.vt || '';
   document.getElementById('violationLocationA').value = q.vl || '';
+  document.getElementById('vehicleSubTypeA_hidden').value = q.vs || '';
   document.getElementById('brandA_hidden').value       = q.br || '';
   document.getElementById('ccA_hidden').value          = q.cc || '';
   document.getElementById('colorA_hidden').value       = q.co || '';
   document.getElementById('addressA_hidden').value     = q.ad || '';
 }
 
+// 摘要卡「車輛種類」優先使用查車籍匯入的實際車種文字（例：普通重型／自用小客車），
+// 若沒有匯入資料才退回使用畫面上手動勾選的粗分類（汽車／機車／微電車）
 function buildSummaryFieldsFromForm(){
+  var subType = document.getElementById('vehicleSubTypeA_hidden').value.trim();
   return {
     violationTime:     document.getElementById('violationTimeA').value.trim(),
     violationLocation: document.getElementById('violationLocationA').value.trim(),
-    carType:           getRadioVal('ctype'),
+    carType:           subType || getRadioVal('ctype'),
     carId:             document.getElementById('carIdA').value.trim(),
     engineNo:          document.getElementById('engineNoA').value.trim(),
     brand:             document.getElementById('brandA_hidden').value.trim(),
@@ -1155,6 +1178,7 @@ function resetA(){
   document.getElementById('colorA_hidden').value = '';
   document.getElementById('ccA_hidden').value = '';
   document.getElementById('addressA_hidden').value = '';
+  document.getElementById('vehicleSubTypeA_hidden').value = '';
   photos.summary = null; driveUrls.summary = '';
   document.getElementById('summaryLinkWrap').style.display = 'none';
   document.getElementById('summaryPendingA').style.display = '';

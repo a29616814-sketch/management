@@ -146,6 +146,13 @@
     .row-confirm-num { font-size: 64px; font-weight: 900; color: #fff; line-height: 1; margin: 8px 0; letter-spacing: -2px; }
     .row-confirm-sub { font-size: 14px; color: #8ab4d4; margin-bottom: 20px; }
     .row-confirm-btn { width: 100%; padding: 13px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.2); color: #fff; font-size: 15px; font-family: inherit; font-weight: bold; cursor: pointer; }
+    .import-card { background: linear-gradient(135deg,#eef8f0 0%,#e8f4fd 100%); border: 1.5px solid #c8e6c9; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+    .import-desc { font-size: 12px; color: #666; margin-top: 3px; margin-bottom: 10px; line-height: 1.6; }
+    textarea.field-input { resize: vertical; min-height: 78px; line-height: 1.5; }
+    .import-btn { width: 100%; padding: 11px; border: none; border-radius: 10px; background: linear-gradient(135deg,#28a745,#1e7e34); color: #fff; font-size: 14px; font-family: inherit; font-weight: bold; cursor: pointer; margin-top: 4px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    .guard-msg .imp-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 2px; font-size: 14px; border-bottom: 1px dashed #eee; }
+    .guard-msg .imp-row.conflict { color: #c0392b; font-weight: bold; }
+    .guard-msg .imp-note { font-size: 12px; color: #888; padding: 5px 2px; text-align: left; }
   </style>
 </head>
 <body>
@@ -186,8 +193,21 @@
     <div id="searchErrorA" class="error-msg"></div>
   </div>
 
+  <div class="import-card">
+    <div style="font-size:13px;font-weight:bold;color:#444;">📥 車籍資料匯入</div>
+    <div class="import-desc">在監理站「查車籍」頁面按 Ctrl+A 全選 → Ctrl+C 複製，貼在下方後按「解析並預覽」。系統會列出偵測到的欄位讓你確認，確認後才會真正帶入表單，不會自動覆蓋。</div>
+    <div class="field" style="margin-bottom:8px;">
+      <textarea class="field-input" id="importRawA" rows="4" placeholder="在這裡貼上查車籍頁面全選複製的內容…"></textarea>
+    </div>
+    <button class="import-btn" onclick="parseAndPreviewImport()">🔍 解析並預覽帶入</button>
+  </div>
+
   <div class="edit-badge" id="editMsgA">⚠️ 修改模式 — 資料已載入，修改後送出即覆蓋</div>
   <input type="hidden" id="rowNumA">
+  <input type="hidden" id="brandA_hidden">
+  <input type="hidden" id="colorA_hidden">
+  <input type="hidden" id="ccA_hidden">
+  <input type="hidden" id="addressA_hidden">
 
   <div class="card">
     <div class="card-hd">
@@ -243,6 +263,10 @@
       <input class="field-input" type="text" id="officeA" placeholder="應到案處所。例：新北市交通事件裁決處">
     </div>
     <div class="field">
+      <span class="field-label">引擎號碼</span>
+      <input class="field-input" type="text" id="engineNoA" placeholder="請輸入引擎號碼" oninput="this.value=this.value.toUpperCase()" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="field">
       <span class="field-label">舉發單號</span>
       <input class="field-input" type="text" id="ticketIdA" placeholder="請輸入舉發單號">
     </div>
@@ -253,6 +277,19 @@
         <label class="chip-label" id="chip-law-21條"><input type="checkbox" name="law" value="21條" onchange="refreshLawChips()"> 21條</label>
         <label class="chip-label" id="chip-law-35條酒駕"><input type="checkbox" name="law" value="35條酒駕" onchange="refreshLawChips()"> 35條酒駕</label>
         <label class="chip-label" id="chip-law-35條毒駕"><input type="checkbox" name="law" value="35條毒駕" onchange="refreshLawChips()"> 35條毒駕</label>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">違規時間</span>
+        <div class="time-wrap">
+          <input class="field-input" type="text" id="violationTimeA" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="fmtTime(this)">
+          <button class="time-now-btn" type="button" onclick="setNowTimeFor('violationTimeA')">🕐 現在</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">違規地點</span>
+        <input class="field-input" type="text" id="violationLocationA" placeholder="請輸入違規地點">
       </div>
     </div>
     <div class="field-row">
@@ -286,6 +323,12 @@
         <div class="photo-stat" id="statTicket">尚未選擇</div>
         <div class="view-lnk" id="vlnkTicket" onclick="openLB('ticket')">🔍 放大查看</div>
       </div>
+    </div>
+    <div style="margin-top:12px; text-align:center; border-top:1.5px solid #f0f2f7; padding-top:12px;">
+      <span id="summaryLinkWrap" style="display:none;">
+        <a href="#" id="summaryLinkA" onclick="window.open(driveUrls.summary,'_blank'); return false;" style="font-size:13px;color:#0f3460;text-decoration:underline;cursor:pointer;font-weight:bold;">📇 查看簿冊摘要卡（可依此謄寫紙本）</a>
+      </span>
+      <span id="summaryPendingA" style="font-size:12px;color:#aaa;">📇 簿冊摘要卡將於送出存檔後自動產生（存入 P 欄）</span>
     </div>
   </div>
 
@@ -426,8 +469,8 @@
 var GAS_URL      = 'https://script.google.com/macros/s/AKfycbwxBoGIjfeCsX8NzsDiJlGWuiMkHXYJXcYO_Ki5dMZZHh_8PQYCwYcSKOnh62Z2Sx6v/exec';
 var SECRET_TOKEN = 'pkq2025secret';
 
-var photos       = { impound:null, ticket:null };
-var driveUrls    = { impound:'', ticket:'' };
+var photos       = { impound:null, ticket:null, summary:null };
+var driveUrls    = { impound:'', ticket:'', summary:'' };
 var lbKey        = '';
 var resultSelB   = '';
 var _isSearchMode = false;
@@ -497,6 +540,10 @@ function fmtTime(el){
 function setNowTime(){
   var now = new Date();
   document.getElementById('ttB').value = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+}
+function setNowTimeFor(id){
+  var now = new Date();
+  document.getElementById(id).value = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
 }
 function todaySlash(){
   var d = new Date();
@@ -709,13 +756,18 @@ function loadSearchResult(res){
   document.getElementById('ownerA').value                = res.values[4]  || '';
   restoreChecks('ctype', res.values[5]);
   document.getElementById('officeA').value               = res.values[6]  || '';
-  document.getElementById('ticketIdA').value             = res.values[7]  || '';
-  restoreChecks('law', res.values[8]);
-  document.getElementById('officerA').value              = res.values[9]  || '';
-  document.getElementById('plateStatusA').value          = res.values[10] || '';
-  document.getElementById('inDateA').value               = toDateInput(res.values[11]||'');
-  loadDrivePhoto(res.values[12],'impound');
-  loadDrivePhoto(res.values[13],'ticket');
+  document.getElementById('engineNoA').value             = res.values[7]  || '';
+  document.getElementById('ticketIdA').value             = res.values[8]  || '';
+  restoreChecks('law', res.values[9]);
+  document.getElementById('officerA').value              = res.values[10] || '';
+  document.getElementById('plateStatusA').value          = res.values[11] || '';
+  document.getElementById('inDateA').value               = toDateInput(res.values[12]||'');
+  loadDrivePhoto(res.values[13],'impound');
+  loadDrivePhoto(res.values[14],'ticket');
+  var summaryUrl = res.values[15] || '';
+  driveUrls.summary = summaryUrl;
+  document.getElementById('summaryLinkWrap').style.display  = summaryUrl ? '' : 'none';
+  document.getElementById('summaryPendingA').style.display  = summaryUrl ? 'none' : '';
   var badge = document.getElementById('rowBadgeA');
   badge.textContent = '📋 紙本第 ' + paperRow + ' 列';
   badge.classList.add('show');
@@ -769,6 +821,7 @@ function doSubmitA(no, logNote){
     owner:       document.getElementById('ownerA').value,
     carType:     fmtCheck(['汽車','機車','微電車'], cType),
     office:      document.getElementById('officeA').value,
+    engineNo:    document.getElementById('engineNoA').value,
     ticketId:    document.getElementById('ticketIdA').value,
     law:         fmtCheck(['12條','21條','35條酒駕','35條毒駕'], getCheckVal('law')),
     officer:     document.getElementById('officerA').value,
@@ -779,15 +832,22 @@ function doSubmitA(no, logNote){
   gasCall({action:'saveTextData', data:td},
     function(res){
       var sr = res.row;
-      setProgA(25,'② 上傳扣車單照片…');
+      setProgA(20,'② 上傳扣車單照片…');
       doUploadPhoto('impound', carId, no, function(iu){
-        setProgA(60,'③ 上傳罰單照片…');
+        setProgA(45,'③ 上傳罰單照片…');
         doUploadPhoto('ticket', carId, no, function(tu){
-          setProgA(85,'④ 寫入照片連結…');
-          gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu},
-            function(){ setProgA(100,'✅ 完成！'); showRowConfirm(sr); },
-            function(){ setProgA(100,'⚠️ 連結寫入失敗'); showRowConfirm(sr); }
-          );
+          setProgA(65,'④ 產生簿冊摘要卡…');
+          var paperRow  = sr - 1;
+          var rocYear   = (td.moveDate||'').split('/')[0] || '';
+          var serialNo  = rocYear ? (rocYear+'-'+paperRow) : String(paperRow);
+          photos.summary = buildSummaryCardImage(serialNo, buildSummaryFieldsFromForm());
+          doUploadPhoto('summary', carId, no, function(su){
+            setProgA(88,'⑤ 寫入照片連結…');
+            gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu, summaryUrl:su},
+              function(){ setProgA(100,'✅ 完成！'); showRowConfirm(sr); },
+              function(){ setProgA(100,'⚠️ 連結寫入失敗'); showRowConfirm(sr); }
+            );
+          });
         });
       });
     },
@@ -801,8 +861,208 @@ function doUploadPhoto(key, carId, no, cb){
     function(){ cb(''); }
   );
 }
+
+// ══════════════════════════════════════════════
+// ★ 車籍資料匯入（查車籍頁面全選複製 → 解析 → 預覽 → 帶入）
+// ══════════════════════════════════════════════
+var COLOR_LIST_A = ['白','黑','紅','藍','銀','灰','綠','黃','棕','橘','紫','卡其','香檳','原色','銀灰','深藍','淺藍','米','金','珍珠白','消光黑'];
+
+function _splitCellsA(line){
+  if(line.indexOf('\t') !== -1) return line.split('\t');
+  return line.split(/ {2,}/);
+}
+
+// 解析「查車籍」頁面全選複製的原始文字，回傳偵測到的欄位（找不到就留空字串，不亂猜）
+function parseVehicleQueryText(text){
+  if(!text) return null;
+  var lines = String(text).split(/\r?\n/);
+  var result = { carId:'', owner:'', address:'', brand:'', color:'', cc:'', engineNo:'', office:'', plateStatus:'' };
+  var foundAny = false;
+
+  for(var i=0; i<lines.length; i++){
+    var line = lines[i];
+
+    // 第一張表：車號 / 車主姓名 / 車種 / 能源別 / 車主證號 / 車主地址 / 偽造號牌
+    if(/車號/.test(line) && /車主姓名/.test(line)){
+      for(var j=i+1; j<lines.length; j++){
+        if(lines[j].trim()===''){ continue; }
+        var cells = _splitCellsA(lines[j]).map(function(c){ return c.trim(); });
+        if(cells[0]){ result.carId  = cells[0]; foundAny = true; }
+        if(cells[1]){ result.owner  = cells[1]; foundAny = true; }
+        if(cells[5]){ result.address = cells[5]; foundAny = true; }
+        break;
+      }
+    }
+
+    // 第二張表：廠牌(+顏色) / 出廠年月 / 汽缸數 / 排氣量 / 車身號碼 / 引擎號碼 / 排氣管編號 / 牌照狀態 / 管轄所站
+    if(/汽缸數/.test(line) && /排氣量/.test(line)){
+      for(var k=i+1; k<lines.length; k++){
+        if(lines[k].trim()===''){ continue; }
+        var cells2 = _splitCellsA(lines[k]).map(function(c){ return c.trim(); });
+        var bc = (cells2[0]||'');
+        if(bc){
+          var parts = bc.split(/\s+/).filter(Boolean);
+          if(parts.length > 1 && COLOR_LIST_A.indexOf(parts[parts.length-1]) !== -1){
+            result.color = parts.pop();
+            result.brand = parts.join(' ');
+          } else {
+            result.brand = bc;
+          }
+          foundAny = true;
+        }
+        if(cells2[3]){ result.cc          = cells2[3]; foundAny = true; }
+        if(cells2[5]){ result.engineNo    = cells2[5]; foundAny = true; }
+        if(cells2[7]){ result.plateStatus = cells2[7]; foundAny = true; }
+        if(cells2[8]){ result.office      = cells2[8]; foundAny = true; }
+        break;
+      }
+    }
+  }
+
+  return foundAny ? result : null;
+}
+
+function parseAndPreviewImport(){
+  var raw = document.getElementById('importRawA').value;
+  if(!raw || !raw.trim()){ alert('請先貼上「查車籍」頁面全選複製的內容'); return; }
+  var parsed = parseVehicleQueryText(raw);
+  if(!parsed){
+    showGuardModal('⚠️','無法解析資料',
+      '貼上的內容中找不到可辨識的欄位（車號／引擎號碼／監理機關等）。<br>請確認是否為「查車籍」頁面的全選複製內容，或頁面格式已變動；不確定的話請先不要帶入。',
+      [{ text:'知道了', cls:'guard-btn-confirm', cb:closeGuardModal }]
+    );
+    return;
+  }
+  showImportPreview(parsed);
+}
+
+function showImportPreview(parsed){
+  var curCarId = document.getElementById('carIdA').value.trim();
+  var curOwner = document.getElementById('ownerA').value.trim();
+  var curOffice = document.getElementById('officeA').value.trim();
+  var curPlate  = document.getElementById('plateStatusA').value.trim();
+  var curEngine = document.getElementById('engineNoA').value.trim();
+
+  var rowsHtml = [];
+  function addRow(label, newVal, curVal){
+    if(!newVal) return false;
+    var conflict = !!(curVal && curVal !== newVal);
+    rowsHtml.push('<div class="imp-row'+(conflict?' conflict':'')+'"><span>'+label+'</span><span>'
+      + (conflict ? (curVal+' → ') : '') + newVal + '</span></div>');
+    return conflict;
+  }
+  var carConflict = addRow('車號', parsed.carId, curCarId);
+  addRow('車主姓名', parsed.owner, curOwner);
+  addRow('監理機關', parsed.office, curOffice);
+  addRow('牌照狀態', parsed.plateStatus, curPlate);
+  addRow('引擎號碼', parsed.engineNo, curEngine);
+  var hiddenBits = [];
+  if(parsed.brand)   hiddenBits.push('廠牌：'+parsed.brand);
+  if(parsed.color)   hiddenBits.push('顏色：'+parsed.color);
+  if(parsed.cc)      hiddenBits.push('排氣量：'+parsed.cc+'CC');
+  if(parsed.address) hiddenBits.push('車主地址：'+parsed.address);
+  if(hiddenBits.length){
+    rowsHtml.push('<div class="imp-note">'+hiddenBits.join('／')+'（網頁不顯示，僅保留給送出後產生的簿冊摘要卡使用）</div>');
+  }
+
+  var msg = rowsHtml.join('')
+    + (carConflict ? '<div style="margin-top:10px;color:#c0392b;font-weight:bold;">⚠️ 貼上的車號與目前表單不同，請確認是否貼錯車輛！</div>' : '');
+
+  showGuardModal(carConflict?'⚠️':'📥', carConflict?'車號不同，請確認' : '確認帶入以下資料？', msg,
+    [
+      { text:'✅ 確認帶入', cls:'guard-btn-confirm', cb:function(){ closeGuardModal(); applyImportedData(parsed); } },
+      { text:'取消',        cls:'guard-btn-cancel',  cb:closeGuardModal }
+    ]
+  );
+}
+
+function applyImportedData(parsed){
+  if(parsed.carId)       document.getElementById('carIdA').value       = parsed.carId;
+  if(parsed.owner)       document.getElementById('ownerA').value       = parsed.owner;
+  if(parsed.office)      document.getElementById('officeA').value      = parsed.office;
+  if(parsed.plateStatus) document.getElementById('plateStatusA').value = parsed.plateStatus;
+  if(parsed.engineNo)    document.getElementById('engineNoA').value    = parsed.engineNo;
+  // 廠牌／顏色／排氣量／車主地址：網頁不顯示，先保留於隱藏欄位，送出時用來產生簿冊摘要卡
+  if(parsed.brand)   document.getElementById('brandA_hidden').value   = parsed.brand;
+  if(parsed.color)   document.getElementById('colorA_hidden').value   = parsed.color;
+  if(parsed.cc)       document.getElementById('ccA_hidden').value      = parsed.cc;
+  if(parsed.address)  document.getElementById('addressA_hidden').value = parsed.address;
+  alert('✅ 已帶入車籍資料，請再次核對後送出');
+}
+
+// ══════════════════════════════════════════════
+// ★ 簿冊摘要卡（送出存檔後自動產生，存入試算表 P 欄）
+//   欄位順序：編號／違規時間／違規地點／車輛種類／車牌號碼／引擎號碼／
+//            廠牌／排氣CC／車身顏色／車主姓名／車主地址／案由(違規法條)／承辦人
+// ══════════════════════════════════════════════
+function buildSummaryFieldsFromForm(){
+  return {
+    violationTime:     document.getElementById('violationTimeA').value.trim(),
+    violationLocation: document.getElementById('violationLocationA').value.trim(),
+    carType:           getRadioVal('ctype'),
+    carId:             document.getElementById('carIdA').value.trim(),
+    engineNo:          document.getElementById('engineNoA').value.trim(),
+    brand:             document.getElementById('brandA_hidden').value.trim(),
+    cc:                document.getElementById('ccA_hidden').value.trim(),
+    color:             document.getElementById('colorA_hidden').value.trim(),
+    owner:             document.getElementById('ownerA').value.trim(),
+    address:           document.getElementById('addressA_hidden').value.trim(),
+    law:               getCheckVal('law'),
+    officer:           document.getElementById('officerA').value.trim()
+  };
+}
+
+// serialNo 格式：民國年-紙本列號（例：115-40），與現有「紙本第N列」數字一致
+function buildSummaryCardImage(serialNo, f){
+  var rows = [
+    ['編號',           serialNo],
+    ['違規時間',       f.violationTime],
+    ['違規地點',       f.violationLocation],
+    ['車輛種類',       f.carType],
+    ['車牌號碼',       f.carId],
+    ['引擎號碼',       f.engineNo],
+    ['廠牌',           f.brand],
+    ['排氣量(CC)',     f.cc],
+    ['車身顏色',       f.color],
+    ['車主姓名',       f.owner],
+    ['車主地址',       f.address],
+    ['案由(違規法條)', f.law],
+    ['承辦人',         f.officer]
+  ];
+  var W = 860, rowH = 52, topPad = 76, botPad = 30;
+  var H = topPad + rows.length*rowH + botPad;
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var ctx = cv.getContext('2d');
+
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = '#0f3460'; ctx.lineWidth = 4; ctx.strokeRect(8,8,W-16,H-16);
+
+  ctx.fillStyle = '#0f3460';
+  ctx.font = 'bold 30px "Microsoft JhengHei","PingFang TC",sans-serif';
+  ctx.fillText('📇 簿冊摘要卡', 34, 50);
+  ctx.strokeStyle = '#0f3460'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(30,64); ctx.lineTo(W-30,64); ctx.stroke();
+
+  rows.forEach(function(r, i){
+    var y = topPad + i*rowH + 32;
+    ctx.fillStyle = '#8898aa';
+    ctx.font = 'bold 20px "Microsoft JhengHei","PingFang TC",sans-serif';
+    ctx.fillText(r[0], 34, y);
+    ctx.fillStyle = '#1a1a2e';
+    ctx.font = '24px "Microsoft JhengHei","PingFang TC",sans-serif';
+    var val = (r[1] && String(r[1]).trim()) ? String(r[1]) : '－';
+    ctx.fillText(val, 200, y);
+    if(i < rows.length-1){
+      ctx.strokeStyle = '#eef0f5'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(30, y+16); ctx.lineTo(W-30, y+16); ctx.stroke();
+    }
+  });
+  return cv.toDataURL('image/jpeg', 0.85);
+}
+
 function resetA(){
-  ['noA','carIdA','ownerA','officeA','ticketIdA','officerA','plateStatusA'].forEach(function(id){
+  ['noA','carIdA','ownerA','officeA','engineNoA','ticketIdA','officerA','plateStatusA'].forEach(function(id){
     document.getElementById(id).value='';
   });
   document.getElementById('moveDateA').value = todaySlash();
@@ -824,6 +1084,16 @@ function resetA(){
   document.getElementById('carIdResults').style.display = 'none';
   document.getElementById('carIdResults').innerHTML = '';
   _carIdRows = [];
+  document.getElementById('violationTimeA').value = '';
+  document.getElementById('violationLocationA').value = '';
+  document.getElementById('importRawA').value = '';
+  document.getElementById('brandA_hidden').value = '';
+  document.getElementById('colorA_hidden').value = '';
+  document.getElementById('ccA_hidden').value = '';
+  document.getElementById('addressA_hidden').value = '';
+  photos.summary = null; driveUrls.summary = '';
+  document.getElementById('summaryLinkWrap').style.display = 'none';
+  document.getElementById('summaryPendingA').style.display = '';
   document.getElementById('btnA').disabled    = false;
   document.getElementById('btnA').textContent = '✅ 確認送出並存檔';
   var badge = document.getElementById('rowBadgeA');

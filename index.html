@@ -744,7 +744,7 @@ function renderCarIdResults(rows){
     var rocYear  = rocYearFromAnyDate(r.values[2]||'');
     var serialNo = rocYear ? (rocYear+'-'+paperRow) : String(paperRow);
     html += '<div class="carid-result-item" data-idx="'+i+'" onclick="selectCarIdResult(this)">'
-          + '<div class="carid-result-no">摘要卡編號 '+serialNo+'　扣車單號：'+no+'</div>'
+          + '<div class="carid-result-no">編號'+serialNo+'　扣車單號：'+no+'</div>'
           + '<div class="carid-result-sub">車主：'+owner+'　移置日期：'+mdate+'</div>'
           + '</div>';
   }
@@ -781,13 +781,15 @@ function loadSearchResult(res){
   document.getElementById('inDateA').value               = toDateInput(res.values[12]||'');
   loadDrivePhoto(res.values[13],'impound');
   loadDrivePhoto(res.values[14],'ticket');
+  restoreQData(res.values[16]);
   var summaryUrl = res.values[15] || '';
   driveUrls.summary = summaryUrl;
   document.getElementById('summaryLinkWrap').style.display  = summaryUrl ? '' : 'none';
   document.getElementById('summaryPendingA').style.display  = summaryUrl ? 'none' : '';
   var badge = document.getElementById('rowBadgeA');
   var rocYear = rocYearFromAnyDate(res.values[2]||'');
-  badge.textContent = '📇 摘要卡編號：' + (rocYear ? (rocYear+'-'+paperRow) : paperRow);
+  var serialNo2 = rocYear ? (rocYear+'-'+paperRow) : String(paperRow);
+  badge.textContent = '📇 編號' + serialNo2;
   badge.classList.add('show');
 }
 
@@ -845,6 +847,7 @@ function doSubmitA(no, logNote){
     officer:     document.getElementById('officerA').value,
     plateStatus: document.getElementById('plateStatusA').value,
     inDate:      slashToISO(document.getElementById('inDateA').value),
+    qData:       buildQData(),
     logNote:     logNote || '新增'
   };
   gasCall({action:'saveTextData', data:td},
@@ -1013,6 +1016,33 @@ function applyImportedData(parsed){
 //   欄位順序：編號／違規時間／違規地點／車輛種類／車牌號碼／引擎號碼／
 //            廠牌／排氣CC／車身顏色／車主姓名／車主地址／案由(違規法條)／承辦人
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// ★ Q 欄：次要資料（違規時間/地點 + 廠牌/排氣量/顏色/車主地址）
+//   這些欄位只用來產生摘要卡，容易被誤會「不重要」而漏存，
+//   但漏存會導致搜尋修改時整批變空白，所以額外打包成一個 JSON
+//   字串存進 Q 欄，讀取時再還原回表單。
+// ══════════════════════════════════════════════
+function buildQData(){
+  return JSON.stringify({
+    vt: document.getElementById('violationTimeA').value.trim(),
+    vl: document.getElementById('violationLocationA').value.trim(),
+    br: document.getElementById('brandA_hidden').value.trim(),
+    cc: document.getElementById('ccA_hidden').value.trim(),
+    co: document.getElementById('colorA_hidden').value.trim(),
+    ad: document.getElementById('addressA_hidden').value.trim()
+  });
+}
+function restoreQData(raw){
+  var q = {};
+  if(raw){ try{ q = JSON.parse(raw) || {}; }catch(ex){ q = {}; } }
+  document.getElementById('violationTimeA').value     = q.vt || '';
+  document.getElementById('violationLocationA').value = q.vl || '';
+  document.getElementById('brandA_hidden').value       = q.br || '';
+  document.getElementById('ccA_hidden').value          = q.cc || '';
+  document.getElementById('colorA_hidden').value       = q.co || '';
+  document.getElementById('addressA_hidden').value     = q.ad || '';
+}
+
 function buildSummaryFieldsFromForm(){
   return {
     violationTime:     document.getElementById('violationTimeA').value.trim(),

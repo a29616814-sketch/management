@@ -108,7 +108,7 @@
     .search-desc { font-size: 12px !important; color: #888; margin-top: 3px; }
     #guardModal { display: none; position: fixed; inset: 0; z-index: 9100; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px; }
     #guardModal.show { display: flex; }
-    .guard-box { background: #fff; border-radius: 18px; width: 100%; max-width: 400px; padding: 24px 22px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); }
+    .guard-box { background: #fff; border-radius: 18px; width: 100%; max-width: 400px; padding: 24px 22px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .guard-icon { font-size: 36px; text-align: center; margin-bottom: 10px; }
     .guard-title { font-size: 17px; font-weight: bold; color: #1a1a2e; text-align: center; margin-bottom: 10px; }
     .guard-msg { font-size: 14px; color: #444; line-height: 1.7; text-align: center; margin-bottom: 20px; }
@@ -141,7 +141,7 @@
     .usage-badge.idle { background: #6f42c1; color: #fff; }
     .usage-empty { text-align: center; color: #aaa; padding: 30px 0; font-size: 15px; }
     .usage-loading { text-align: center; color: #0f3460; padding: 30px 0; font-size: 15px; }
-    .row-confirm-box { background: linear-gradient(135deg, #0f3460, #1a5276); color: #fff; border-radius: 18px; width: 100%; max-width: 400px; padding: 28px 22px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
+    .row-confirm-box { background: linear-gradient(135deg, #0f3460, #1a5276); color: #fff; border-radius: 18px; width: 100%; max-width: 400px; padding: 28px 22px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .row-confirm-icon { font-size: 42px; margin-bottom: 10px; }
     .row-confirm-title { font-size: 16px; font-weight: bold; color: #b0d4f1; margin-bottom: 6px; }
     .row-confirm-num { font-size: 64px; font-weight: 900; color: #fff; line-height: 1; margin: 8px 0; letter-spacing: -2px; }
@@ -880,21 +880,22 @@ function doSubmitA(no, logNote){
           var serialNo  = rocYear ? (rocYear+'-'+paperRow) : String(paperRow);
           photos.summary = buildSummaryCardImage(serialNo, buildSummaryFieldsFromForm());
           doUploadPhoto('summary', carId, no, function(su){
+            driveUrls.summary = su || driveUrls.summary;
             setProgA(88,'⑤ 寫入照片連結…');
             gasCall({action:'savePhotoUrls', rowNum:sr, impoundUrl:iu, ticketUrl:tu, summaryUrl:su},
               function(){ setProgA(100,'✅ 完成！'); showRowConfirm(serialNo, photos.summary); },
               function(){ setProgA(100,'⚠️ 連結寫入失敗'); showRowConfirm(serialNo, photos.summary); }
             );
-          });
+          }, driveUrls.summary);
         });
       });
     },
     function(err){ btn.disabled=false; btn.textContent='✅ 確認送出並存檔'; hideProgA(); alert('❌ '+err.message); }
   );
 }
-function doUploadPhoto(key, carId, no, cb){
+function doUploadPhoto(key, carId, no, cb, oldUrl){
   if(!photos[key]){ cb(driveUrls[key]||''); return; }
-  gasCall({action:'uploadPhoto', base64:photos[key], key:key, carId:carId, no:no},
+  gasCall({action:'uploadPhoto', base64:photos[key], key:key, carId:carId, no:no, oldUrl:oldUrl||''},
     function(res){ cb((res&&res.url)||''); },
     function(){ cb(''); }
   );
@@ -1050,7 +1051,6 @@ function applyImportedData(parsed){
 //   欄位順序：編號／違規時間／違規地點／車輛種類／車牌號碼／引擎號碼／
 //            廠牌／排氣CC／車身顏色／車主姓名／車主地址／案由(違規法條)／承辦人
 // ══════════════════════════════════════════════
-// ══════════════════════════════════════════════
 // ★ Q 欄：次要資料（違規時間/地點 + 廠牌/排氣量/顏色/車主地址）
 //   這些欄位只用來產生摘要卡，容易被誤會「不重要」而漏存，
 //   但漏存會導致搜尋修改時整批變空白，所以額外打包成一個 JSON
@@ -1121,12 +1121,14 @@ function buildSummaryCardImage(serialNo, f){
   var cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
   var ctx = cv.getContext('2d');
+  var fontFamily = '"Microsoft JhengHei","PingFang TC",sans-serif';
+  var valX = 200, valMaxWidth = W - valX - 34; // 值欄可用寬度，避免長地址/多選法條超出邊框
 
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle = '#0f3460'; ctx.lineWidth = 4; ctx.strokeRect(8,8,W-16,H-16);
 
   ctx.fillStyle = '#0f3460';
-  ctx.font = 'bold 30px "Microsoft JhengHei","PingFang TC",sans-serif';
+  ctx.font = 'bold 30px ' + fontFamily;
   ctx.fillText('📇 簿冊摘要卡', 34, 50);
   ctx.strokeStyle = '#0f3460'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(30,64); ctx.lineTo(W-30,64); ctx.stroke();
@@ -1134,12 +1136,19 @@ function buildSummaryCardImage(serialNo, f){
   rows.forEach(function(r, i){
     var y = topPad + i*rowH + 32;
     ctx.fillStyle = '#8898aa';
-    ctx.font = 'bold 20px "Microsoft JhengHei","PingFang TC",sans-serif';
+    ctx.font = 'bold 20px ' + fontFamily;
     ctx.fillText(r[0], 34, y);
-    ctx.fillStyle = '#1a1a2e';
-    ctx.font = '24px "Microsoft JhengHei","PingFang TC",sans-serif';
+
     var val = (r[1] && String(r[1]).trim()) ? String(r[1]) : '－';
-    ctx.fillText(val, 200, y);
+    // 文字太長（例：完整地址、多選違規法條）就自動縮小字級，直到塞得進可用寬度，避免溢出卡片
+    var fSize = 24;
+    ctx.font = fSize + 'px ' + fontFamily;
+    while(fSize > 13 && ctx.measureText(val).width > valMaxWidth){
+      fSize -= 1;
+      ctx.font = fSize + 'px ' + fontFamily;
+    }
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillText(val, valX, y);
     if(i < rows.length-1){
       ctx.strokeStyle = '#eef0f5'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(30, y+16); ctx.lineTo(W-30, y+16); ctx.stroke();

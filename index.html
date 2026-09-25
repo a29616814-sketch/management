@@ -1034,11 +1034,13 @@ function showImportPreview(parsed){
 }
 
 function applyImportedData(parsed){
-  if(parsed.carId)       document.getElementById('carIdA').value       = parsed.carId;
+  // 車號／引擎號碼手動輸入時本來就會自動轉大寫（oninput），但這裡是程式直接寫入 value，
+  // 不會觸發那個轉換，所以在這裡額外補一次 toUpperCase()，確保匯入和手動輸入的結果一致
+  if(parsed.carId)       document.getElementById('carIdA').value       = String(parsed.carId).toUpperCase();
   if(parsed.owner)       document.getElementById('ownerA').value       = parsed.owner;
   if(parsed.office)      document.getElementById('officeA').value      = parsed.office;
   if(parsed.plateStatus) document.getElementById('plateStatusA').value = parsed.plateStatus;
-  if(parsed.engineNo)    document.getElementById('engineNoA').value    = parsed.engineNo;
+  if(parsed.engineNo)    document.getElementById('engineNoA').value    = String(parsed.engineNo).toUpperCase();
   // 車種／廠牌／顏色／排氣量／車主地址：網頁不顯示，先保留於隱藏欄位，送出時用來產生簿冊摘要卡
   if(parsed.vehicleSubType) document.getElementById('vehicleSubTypeA_hidden').value = parsed.vehicleSubType;
   if(parsed.brand)   document.getElementById('brandA_hidden').value   = parsed.brand;

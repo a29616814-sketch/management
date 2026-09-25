@@ -279,6 +279,8 @@
         <label class="chip-label" id="chip-law-21條"><input type="checkbox" name="law" value="21條" onchange="refreshLawChips()"> 21條</label>
         <label class="chip-label" id="chip-law-35條酒駕"><input type="checkbox" name="law" value="35條酒駕" onchange="refreshLawChips()"> 35條酒駕</label>
         <label class="chip-label" id="chip-law-35條毒駕"><input type="checkbox" name="law" value="35條毒駕" onchange="refreshLawChips()"> 35條毒駕</label>
+        <label class="chip-label" id="chip-law-73條酒駕"><input type="checkbox" name="law" value="73條酒駕" onchange="refreshLawChips()"> 73條酒駕</label>
+        <label class="chip-label" id="chip-law-73條毒駕"><input type="checkbox" name="law" value="73條毒駕" onchange="refreshLawChips()"> 73條毒駕</label>
       </div>
     </div>
     <div class="field-row">
@@ -860,7 +862,7 @@ function doSubmitA(no, logNote){
     office:      document.getElementById('officeA').value,
     engineNo:    document.getElementById('engineNoA').value,
     ticketId:    document.getElementById('ticketIdA').value,
-    law:         fmtCheck(['12條','21條','35條酒駕','35條毒駕'], getCheckVal('law')),
+    law:         fmtCheck(['12條','21條','35條酒駕','35條毒駕','73條酒駕','73條毒駕'], getCheckVal('law')),
     officer:     document.getElementById('officerA').value,
     plateStatus: document.getElementById('plateStatusA').value,
     inDate:      slashToISO(document.getElementById('inDateA').value),
